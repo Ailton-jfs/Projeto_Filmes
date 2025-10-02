@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recomendação de Filmes 🎬</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🎥 Filmes Populares</h1>
+  <div id="filmes"></div>
+
+  <script>
+    async function carregarFilmes() {
+      try {
+        // Chama sua API local em Node/TS
+        const resposta = await fetch("http://localhost:3000/filmes/populares");
+        const filmes = await resposta.json();
+
+        const container = document.getElementById("filmes");
+        container.innerHTML = "";
+
+        filmes.forEach(filme => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="https://image.tmdb.org/t/p/w500${filme.poster_path}" alt="${filme.title}">
+            <div class="titulo">${filme.title}</div>
+            <div class="nota">⭐ ${filme.vote_average.toFixed(1)}</div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (erro) {
+        console.error("Erro ao carregar filmes:", erro);
+      }
+    }
+
+    carregarFilmes();
+  </script>
+</body>
+</html>
