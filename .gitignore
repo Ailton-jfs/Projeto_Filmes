@@ -1,3 +1,15 @@
+# Ignorar dependências
 node_modules/
-.env
+
+# Ignorar build/output
+dist/
+build/
+
+# Ignorar arquivos temporários do sistema/IDE
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Ignorar ambiente virtual Python
+venv/
 
