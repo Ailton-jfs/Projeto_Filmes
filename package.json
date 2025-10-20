@@ -1,28 +1,21 @@
 {
-  "name": "projeto_filmes",
+  "name": "aula_api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Ailton-jfs/Projeto_Filmes.git"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Ailton-jfs/Projeto_Filmes/issues"
-  },
-  "homepage": "https://github.com/Ailton-jfs/Projeto_Filmes#readme",
   "dependencies": {
-    "axios": "^1.12.2",
-    "express": "^5.1.0"
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.1"
   },
   "devDependencies": {
-    "@types/axios": "^0.9.36",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "dotenv": "^17.2.3",
     "nodemon": "^3.1.10",
