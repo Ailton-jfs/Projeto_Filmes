@@ -2,9 +2,13 @@
 import express from "express";
 import type { Request, Response } from "express";
 import axios from "axios";
+import { Router } from "express";
+import filmeRouter from "./filmeRouter";
+import usuarioRouter from "./usuarioRouter";
 
 const app = express();
 const PORT = 3000;
+const router = Router();
 
 // Chave da API do TMDb (crie uma conta gratuita em themoviedb.org)
 const TMDB_API_KEY = "SUA_CHAVE_AQUI";
@@ -43,3 +47,8 @@ app.get("/filmes/:id/recomendacoes", async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });
+
+router.use("/filmes", filmeRouter);
+router.use("/usuarios", usuarioRouter); // já existente
+
+export default router;
