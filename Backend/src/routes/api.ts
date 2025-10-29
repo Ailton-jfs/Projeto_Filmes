@@ -8,8 +8,12 @@ import recomendacaoRouter from "./recomendacaoRouter";
 const router = Router();
 
 // 🔑 Sua chave da API do TMDb
-const TMDB_API_KEY = "SUA_CHAVE_AQUI";
+import { config } from "dotenv";
+config(); // carrega as variáveis do .env
+
+const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
 
 // 🏠 Rota básica
 router.get("/", (req, res) => {

@@ -1,11 +1,11 @@
 interface iUsuario {
-  id: number;
-  name: string;
+  id?: number;
+  nome: string;
   email: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
-  
+  senha: string;
+  preferencias: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export default iUsuario;

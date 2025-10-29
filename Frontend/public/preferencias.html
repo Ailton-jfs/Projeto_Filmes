@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preferências - CineMatch</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Olá, <span id="nomeUsuario"></span>! Escolha seus gêneros favoritos:</h2>
+    <form id="formPreferencias">
+      <label><input type="checkbox" name="genero" value="Ação"> Ação</label>
+      <label><input type="checkbox" name="genero" value="Comédia"> Comédia</label>
+      <label><input type="checkbox" name="genero" value="Romance"> Romance</label>
+      <label><input type="checkbox" name="genero" value="Terror"> Terror</label>
+      <label><input type="checkbox" name="genero" value="Ficção Científica"> Ficção Científica</label>
+      <button type="submit">Ver recomendações</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("nomeUsuario").textContent = localStorage.getItem("usuario");
+    document.getElementById("formPreferencias").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const generos = Array.from(document.querySelectorAll("input[name='genero']:checked")).map(el => el.value);
+      localStorage.setItem("preferencias", JSON.stringify(generos));
+      window.location.href = "recomendacoes.html";
+    });
+  </script>
+</body>
+</html>
