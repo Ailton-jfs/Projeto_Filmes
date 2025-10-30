@@ -1,55 +1,37 @@
-import  {connection} from "./connectionModel";
+import { connection } from "./connectionModel";
 import iUsuario from "../interfaces/iUsuario";
+import bcrypt from "bcrypt";
 
 const getAll = async () => {
-  const [listUsuarios] = await connection.execute('SELECT * FROM User');
-  return listUsuarios;
-}
+  const [rows]: any = await connection.execute("SELECT * FROM usuario");
+  return rows;
+};
 
 const getById = async (id: number) => {
-  const [usuario] = await connection.execute('SELECT * FROM User WHERE id = $[id]');
-  return usuario;
-}
+  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE id = ?", [id]);
+  return rows[0];
+};
 
 const newUsuario = async (body: iUsuario) => {
-  const { name, email, password } = body;
-  const query = 'INSERT INTO User (name, email, password) value (?, ?, ?)';
-  const [newP] = await connection.execute(query, [name, email, password]);
-  return newP;
-}
+  const { nome, email, senha, preferencias } = body;
 
-const editUsuario = async (id: number, body: iUsuario) => {
-  const { name, email, password } = body;
-  const query = 'UPDATE User SET name = ?, email = ?, password = ? WHERE id = ?';
-  const [editP] = await connection.execute(query, [name, email, password, id]);
-  return editP;
-}
+  // Criptografa a senha antes de salvar
+  const hash = await bcrypt.hash(senha, 10);
 
-const editPartial = async (id: number, updates: Partial<iUsuario>, body: iUsuario) => {
-    delete updates.createdAt
-    if (!updates.updatedAt) {
-         updates.updatedAt = new Date()
-    }
+  const query = "INSERT INTO usuario (nome, email, senha, preferencias, createdAt, updatedAt) VALUES (?, ?, ?, ?, NOW(), NOW())";
+  const [result]: any = await connection.execute(query, [nome, email, hash, preferencias]);
 
-    const fields = Object.keys(updates)
-    const values = Object.values(updates)
+  return { id: result.insertId, nome, email, preferencias };
+};
 
-    const setclause = fields.map((field) => `${field} = ?`).join(', ');
-    const query = `UPDATE User set ${setclause} updatedAt = NOW() WHERE id = ?`;
-    const result = await connection.execute(query, [...values, id]);
-    return result;  
-}
-
-const removeUsuario = async (id: number) => {
-  const removeUr = await connection.execute(`DELETE FROM User WHERE id = ${id}`);
-  return removeUr;
-}
+const getByEmail = async (email: string) => {
+  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE email = ?", [email]);
+  return rows[0];
+};
 
 export default {
-    getAll,
-    getById,
-    newUsuario,
-    editUsuario,
-    editPartial,
-    removeUsuario
-}
+  getAll,
+  getById,
+  newUsuario,
+  getByEmail,
+};

@@ -1,41 +1,71 @@
-document.getElementById("formCadastro").addEventListener("submit", async (e) => {
-  e.preventDefault();
+const nome = localStorage.getItem("usuario");
+document.getElementById("usuario").textContent = nome;
 
-  const nome = document.getElementById("nome").value;
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
-  const preferencias = document.getElementById("preferencias").value;
+const preferencias = JSON.parse(localStorage.getItem("preferencias")) || [];
+const filmesContainer = document.getElementById("filmesContainer");
+
+async function carregarRecomendacoes() {
+  filmesContainer.innerHTML = "<p>Carregando recomendações...</p>";
 
   try {
-    // Envia os dados para o backend
-    const resposta = await fetch("http://localhost:3000/api/usuarios/cadastrar", {
+    // 1️⃣ Busca do backend local
+    const localRes = await fetch("http://localhost:3000/filmes");
+    const filmesLocal = await localRes.json();
+
+    // 2️⃣ Busca TMDB
+    const generosString = preferencias.join(",");
+    const tmdbRes = await fetch(`http://localhost:3000/api/tmdb?generos=${generosString}`);
+    const filmesTMDB = await tmdbRes.json();
+
+    // 3️⃣ Busca ChatGPT
+    const chatRes = await fetch("http://localhost:3000/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, email, senha, preferencias }),
+      body: JSON.stringify({ generos: preferencias, nome }),
     });
+    const chatData = await chatRes.json();
+    const filmesIA = chatData.recomendacoes || [];
 
-    const usuario = await resposta.json();
-    alert(`Bem-vindo, ${usuario.nome}! Recomendando filmes...`);
+    filmesContainer.innerHTML = "";
 
-    // Agora busca recomendações personalizadas
-    const respRec = await fetch(`http://localhost:3000/api/filmes/recomendar?email=${usuario.email}`);
-    const filmes = await respRec.json();
+    // Junta todos os resultados
+    const todos = [
+      ...filmesLocal.map(f => ({
+        origem: "Local",
+        titulo: f.title,
+        descricao: f.overview,
+        imagem: `https://image.tmdb.org/t/p/w500${f.poster_path}`,
+      })),
+      ...filmesTMDB.map(f => ({
+        origem: "TMDB",
+        titulo: f.title,
+        descricao: f.overview,
+        imagem: `https://image.tmdb.org/t/p/w500${f.poster_path}`,
+      })),
+      ...filmesIA.map(f => ({
+        origem: "IA",
+        titulo: f.titulo,
+        descricao: f.descricao,
+        imagem: "https://via.placeholder.com/200x300?text=IA+Recomendou",
+      })),
+    ];
 
-    const container = document.getElementById("filmes");
-    container.innerHTML = "";
-
-    filmes.forEach(filme => {
+    // Renderiza na tela
+    todos.forEach(filme => {
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        <img src="https://image.tmdb.org/t/p/w500${filme.poster_path}" alt="${filme.title}">
-        <div class="titulo">${filme.title}</div>
-        <div class="nota">⭐ ${filme.vote_average.toFixed(1)}</div>
+        <img src="${filme.imagem}" alt="${filme.titulo}">
+        <h3>${filme.titulo}</h3>
+        <p><b>Fonte:</b> ${filme.origem}</p>
+        <p>${filme.descricao.substring(0, 120)}...</p>
       `;
-      container.appendChild(card);
+      filmesContainer.appendChild(card);
     });
-
-  } catch (erro) {
-    console.error("Erro ao cadastrar ou recomendar:", erro);
+  } catch (err) {
+    filmesContainer.innerHTML = "<p>Erro ao carregar filmes 😢</p>";
+    console.error(err);
   }
-});
+}
+
+carregarRecomendacoes();
