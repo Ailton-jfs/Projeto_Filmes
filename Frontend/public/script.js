@@ -1,71 +1,84 @@
-const nome = localStorage.getItem("usuario");
+// Pega o nome do usuário e exibe
+const nome = localStorage.getItem("usuario") || "Usuário";
 document.getElementById("usuario").textContent = nome;
 
-const preferencias = JSON.parse(localStorage.getItem("preferencias")) || [];
-const filmesContainer = document.getElementById("filmesContainer");
+// Pega as preferências armazenadas
+const preferencias = localStorage.getItem("preferencias") || "";
 
+// Containers das recomendações
+const tmdbContainer = document.getElementById("tmdbFilmes");
+const iaContainer = document.getElementById("iaFilmes");
+const resultado = document.getElementById("resultado");
+
+// Mostra loading
+tmdbContainer.innerHTML = "<p>🎬 Carregando recomendações do TMDB...</p>";
+iaContainer.innerHTML = "<p>🤖 Carregando recomendações da IA...</p>";
+resultado.classList.remove("hidden");
+
+// Função principal
 async function carregarRecomendacoes() {
-  filmesContainer.innerHTML = "<p>Carregando recomendações...</p>";
-
   try {
-    // 1️⃣ Busca do backend local
-    const localRes = await fetch("http://localhost:3000/filmes");
-    const filmesLocal = await localRes.json();
-
-    // 2️⃣ Busca TMDB
-    const generosString = preferencias.join(",");
-    const tmdbRes = await fetch(`http://localhost:3000/api/tmdb?generos=${generosString}`);
+    // 🔹 1️⃣ Busca no TMDB via backend (baseada em texto)
+    const tmdbRes = await fetch(`http://localhost:3000/api/tmdb?busca=${encodeURIComponent(preferencias)}`);
     const filmesTMDB = await tmdbRes.json();
 
-    // 3️⃣ Busca ChatGPT
+    // Renderiza TMDB
+    tmdbContainer.innerHTML = "";
+    filmesTMDB.slice(0, 6).forEach(f => {
+      const card = document.createElement("div");
+      card.className = "bg-gray-700 p-4 rounded shadow text-center";
+      card.innerHTML = `
+        <img src="${f.poster_path ? `https://image.tmdb.org/t/p/w500${f.poster_path}` : "https://via.placeholder.com/200x300?text=Sem+Imagem"}" 
+             alt="${f.title || f.name}" class="w-full h-64 object-cover rounded mb-2">
+        <h3 class="font-semibold text-lg">${f.title || f.name}</h3>
+        <p class="text-sm text-gray-300">${(f.overview || "Sem descrição").substring(0, 120)}...</p>
+      `;
+      tmdbContainer.appendChild(card);
+    });
+
+    // 🔹 2️⃣ Busca recomendações da IA
     const chatRes = await fetch("http://localhost:3000/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ generos: preferencias, nome }),
+      body: JSON.stringify({ nome, preferencias }),
     });
+
     const chatData = await chatRes.json();
     const filmesIA = chatData.recomendacoes || [];
 
-    filmesContainer.innerHTML = "";
+    // Renderiza IA
+iaContainer.innerHTML = "";
+if (filmesIA.length === 0) {
+  iaContainer.innerHTML = "<p>Nenhuma recomendação da IA disponível.</p>";
+} else {
+  filmesIA.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "bg-gray-700 p-4 rounded shadow text-center";
 
-    // Junta todos os resultados
-    const todos = [
-      ...filmesLocal.map(f => ({
-        origem: "Local",
-        titulo: f.title,
-        descricao: f.overview,
-        imagem: `https://image.tmdb.org/t/p/w500${f.poster_path}`,
-      })),
-      ...filmesTMDB.map(f => ({
-        origem: "TMDB",
-        titulo: f.title,
-        descricao: f.overview,
-        imagem: `https://image.tmdb.org/t/p/w500${f.poster_path}`,
-      })),
-      ...filmesIA.map(f => ({
-        origem: "IA",
-        titulo: f.titulo,
-        descricao: f.descricao,
-        imagem: "https://via.placeholder.com/200x300?text=IA+Recomendou",
-      })),
-    ];
+    // Monta os links como botões
+    let linksHTML = "";
+    if (f.links && f.links.length > 0) {
+      linksHTML = `<div class="mt-2 flex flex-wrap justify-center gap-2">` +
+        f.links.map(l => `<a href="${l.url}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs">${l.plataforma}</a>`).join("") +
+        `</div>`;
+    }
 
-    // Renderiza na tela
-    todos.forEach(filme => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${filme.imagem}" alt="${filme.titulo}">
-        <h3>${filme.titulo}</h3>
-        <p><b>Fonte:</b> ${filme.origem}</p>
-        <p>${filme.descricao.substring(0, 120)}...</p>
-      `;
-      filmesContainer.appendChild(card);
-    });
+    card.innerHTML = `
+      <h3 class="font-semibold text-lg">${f.titulo}</h3>
+      <p class="text-sm text-gray-300">${(f.descricao || "Sem descrição").substring(0, 120)}...</p>
+      ${linksHTML}
+    `;
+    iaContainer.appendChild(card);
+  });
+}
+
+
   } catch (err) {
-    filmesContainer.innerHTML = "<p>Erro ao carregar filmes 😢</p>";
-    console.error(err);
+    console.error("❌ Erro ao carregar recomendações:", err);
+    tmdbContainer.innerHTML = "<p>Erro ao carregar filmes do TMDB 😢</p>";
+    iaContainer.innerHTML = "<p>Erro ao carregar recomendações da IA 😢</p>";
   }
 }
 
+// Executa automaticamente ao abrir a página
 carregarRecomendacoes();

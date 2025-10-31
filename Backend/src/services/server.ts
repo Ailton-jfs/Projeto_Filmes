@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "dotenv";
 import usuarioRouter from "../routes/usuarioRouter"; // suas rotas principais
-
+import filmesRouter from "../routes/filmesRouter";
 // Carrega variáveis do .env
 config();
 
@@ -24,6 +24,7 @@ app.use(express.static("public"));
 
 // ✅ Suas rotas principais
 app.use("/api/usuarios", usuarioRouter);
+app.use("/", filmesRouter);
 
 // ✅ Rota simples para teste
 app.get("/", (req, res) => {

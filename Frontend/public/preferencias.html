@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preferências - CineMatch</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recomendações de Filmes</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="container">
-    <h2>Olá, <span id="nomeUsuario"></span>! Escolha seus gêneros favoritos:</h2>
-    <form id="formPreferencias">
-      <label><input type="checkbox" name="genero" value="Ação"> Ação</label>
-      <label><input type="checkbox" name="genero" value="Comédia"> Comédia</label>
-      <label><input type="checkbox" name="genero" value="Romance"> Romance</label>
-      <label><input type="checkbox" name="genero" value="Terror"> Terror</label>
-      <label><input type="checkbox" name="genero" value="Ficção Científica"> Ficção Científica</label>
-      <button type="submit">Ver recomendações</button>
+<body class="bg-gray-900 text-white min-h-screen p-6">
+
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-center">🎬 Recomendações de Filmes</h1>
+
+    <!-- Formulário -->
+    <form id="formRecomendacoes" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+      <label class="block mb-3">
+        <span class="text-gray-300">Descreva seus gostos em filmes:</span>
+        <textarea id="preferencias" class="w-full mt-1 p-2 rounded bg-gray-700 border border-gray-600 text-white h-32" placeholder="Ex: gosto de filmes de ação com ficção científica e heróis que salvam o mundo..." required></textarea>
+      </label>
+      
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Gerar Recomendações
+      </button>
     </form>
   </div>
 
   <script>
-    document.getElementById("nomeUsuario").textContent = localStorage.getItem("usuario");
-    document.getElementById("formPreferencias").addEventListener("submit", (e) => {
+    const form = document.getElementById("formRecomendacoes");
+
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const generos = Array.from(document.querySelectorAll("input[name='genero']:checked")).map(el => el.value);
-      localStorage.setItem("preferencias", JSON.stringify(generos));
+      // salva as preferências no localStorage
+      const preferencias = document.getElementById("preferencias").value;
+      localStorage.setItem("preferencias", preferencias);
+      // redireciona para a página de recomendações
       window.location.href = "recomendacoes.html";
     });
   </script>

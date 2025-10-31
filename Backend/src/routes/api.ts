@@ -1,7 +1,7 @@
 // src/routes/api.ts
 import { Router } from "express";
 import axios from "axios";
-import filmeRouter from "./filmeRouter";
+import filmeRouter from "./filmesRouter";
 import usuarioRouter from "./usuarioRouter";
 import recomendacaoRouter from "./recomendacaoRouter";
 
