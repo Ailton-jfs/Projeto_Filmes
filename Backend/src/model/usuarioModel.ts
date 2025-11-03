@@ -74,23 +74,6 @@ const removeUser = async (req: Request, res: Response) => {
   return res.sendStatus(204);
 };
 
-// 🔑 NOVO: Implementação da edição parcial
-const editPartial = async (id: number, updates: Partial<iUsuario>, originalBody: any) => {
-    // Remove 'senha' dos updates se não estiver presente (para evitar hash desnecessário)
-    delete originalBody.senha; 
-    
-    // Constrói a query de forma dinâmica
-    const keys = Object.keys(originalBody);
-    const values = Object.values(originalBody);
-
-    if (keys.length === 0) return null; // Nada para atualizar
-
-    const setClauses = keys.map(key => `${key} = ?`).join(', ');
-    const query = `UPDATE usuario SET ${setClauses}, updatedAt = NOW() WHERE id = ?`;
-
-    const [result]: any = await connection.execute(query, [...values, id]);
-    return result.affectedRows > 0 ? { id, ...originalBody } : null;
-}
 
 // 🔑 NOVO: Implementação da remoção
 const removeUsuario = async (id: number) => {
@@ -104,5 +87,5 @@ export default {
   newUsuario,
   getByEmail,
   editPartial,
-  removeUser,
+  removeUsuario,
 };
