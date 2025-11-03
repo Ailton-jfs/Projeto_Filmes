@@ -18,12 +18,6 @@ const newUsuario = async (req: Request, res: Response) => {
   return res.status(200).json(newU);
 }
 
-const editUsuario = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const editU = await usuarioModel.editUsuario(id, req.body);
-  return res.status(200).json({message: "Usuário editado com sucesso!!!"});
-}
-
 const editPartial = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const updates: Partial<iUsuario> = req.body;
@@ -40,7 +34,6 @@ export default {
     getAll,
     getById,
     newUsuario,
-    editUsuario,
     editPartial,
     removeUsuario
 }
