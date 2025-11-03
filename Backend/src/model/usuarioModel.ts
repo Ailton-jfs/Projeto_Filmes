@@ -1,39 +1,36 @@
-// Código usuarioModel (ATUALIZADO)
 import { connection } from "./connectionModel";
 import iUsuario from "../interfaces/iUsuario";
 import bcrypt from "bcrypt";
-import { Request, Response } from "express";
 
 const getAll = async () => {
-  const [rows]: any = await connection.execute("SELECT * FROM usuario");
-  return rows;
+  const [rows]: any = await connection.execute("SELECT * FROM usuario");
+  return rows;
 };
 
 const getById = async (id: number) => {
-  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE id = ?", [id]);
-  return rows[0];
+  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE id = ?", [id]);
+  return rows[0];
 };
 
 const newUsuario = async (body: iUsuario) => {
-  const { nome, email, senha, preferencias } = body;
+  const { nome, email, senha, preferencias } = body;
 
-  // Criptografa a senha antes de salvar
-  const hash = await bcrypt.hash(senha, 10);
-
-  const query = "INSERT INTO usuario (nome, email, senha, preferencias, createdAt, updatedAt) VALUES (?, ?, ?, ?, NOW(), NOW())";
-  const [result]: any = await connection.execute(query, [nome, email, hash, preferencias]);
-
-  return { id: result.insertId, nome, email, preferencias };
+  const hash = await bcrypt.hash(senha, 10);
+  const query = `
+    INSERT INTO usuario (nome, email, senha, preferencias, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, NOW(), NOW())
+  `;
+  const [result]: any = await connection.execute(query, [nome, email, hash, preferencias]);
+  return { id: result.insertId, nome, email, preferencias };
 };
 
 const getByEmail = async (email: string) => {
-  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE email = ?", [email]);
-  return rows[0];
+  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE email = ?", [email]);
+  return rows[0];
 };
-const editPartial = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const updates: Partial<iUsuario> = req.body;
 
+// ✅ AGORA CORRETO — não usa req/res, e aceita (id, updates)
+const editPartial = async (id: number, updates: Partial<iUsuario>) => {
   const fields: string[] = [];
   const values: any[] = [];
 
@@ -56,7 +53,7 @@ const editPartial = async (req: Request, res: Response) => {
   }
 
   if (fields.length === 0) {
-    return res.status(400).json({ message: "No fields to update" });
+    throw new Error("Nenhum campo para atualizar");
   }
 
   const query = `UPDATE usuario SET ${fields.join(", ")}, updatedAt = NOW() WHERE id = ?`;
@@ -65,21 +62,14 @@ const editPartial = async (req: Request, res: Response) => {
   await connection.execute(query, values);
 
   const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE id = ?", [id]);
-  return res.status(200).json(rows[0]);
+  return rows[0];
 };
 
-const removeUser = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  await connection.execute("DELETE FROM usuario WHERE id = ?", [id]);
-  return res.sendStatus(204);
-};
-
-
-// 🔑 NOVO: Implementação da remoção
+// ✅ Mantém apenas a versão que usa (id: number)
 const removeUsuario = async (id: number) => {
-    const [result]: any = await connection.execute("DELETE FROM usuario WHERE id = ?", [id]);
-    return result.affectedRows > 0;
-}
+  const [result]: any = await connection.execute("DELETE FROM usuario WHERE id = ?", [id]);
+  return result.affectedRows > 0;
+};
 
 export default {
   getAll,

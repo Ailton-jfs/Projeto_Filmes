@@ -19,9 +19,9 @@ const newUsuario = async (req: Request, res: Response) => {
 }
 
 const editPartial = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
     const updates: Partial<iUsuario> = req.body;
-    const result = await usuarioModel.editPartial(id, updates, req.body);
+    const id = Number(req.params.id);
+    const result = await usuarioModel.editPartial(id, updates);
     return res.status(200).json(result);
 }
 
