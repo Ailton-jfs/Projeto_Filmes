@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar Conta</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white font-sans relative">
+
+  <!-- Fundo cinematográfico -->
+  <div 
+    class="absolute inset-0 bg-cover bg-center brightness-50" 
+    style="background-image: url('https://image.tmdb.org/t/p/original/tmU7GeKVybMWFButWEGl2M4GeiP.jpg');">
+  </div>
+
+  <!-- Camada de sobreposição -->
+  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/20"></div>
+
+  <!-- Conteúdo -->
+  <div class="relative flex items-center justify-center min-h-screen px-4 z-10">
+    <div class="bg-black/80 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+      <h1 class="text-4xl font-bold text-center text-red-600 mb-8">Criar Conta</h1>
+
+      <form id="formCadastro" class="space-y-5">
+        <div>
+          <label for="nome" class="block text-gray-300 mb-1">Nome</label>
+          <input type="text" id="nome" placeholder="Seu nome" required
+            class="w-full px-4 py-3 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600">
+        </div>
+
+        <div>
+          <label for="email" class="block text-gray-300 mb-1">E-mail</label>
+          <input type="email" id="email" placeholder="Seu e-mail" required
+            class="w-full px-4 py-3 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600">
+        </div>
+
+        <div>
+          <label for="senha" class="block text-gray-300 mb-1">Senha</label>
+          <input type="password" id="senha" placeholder="Crie uma senha" required
+            class="w-full px-4 py-3 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600">
+        </div>
+
+        <button type="submit" 
+          class="w-full bg-red-600 hover:bg-red-700 transition-all duration-300 py-3 rounded-lg text-lg font-semibold">
+          Cadastrar
+        </button>
+      </form>
+
+      <p class="text-center text-gray-400 mt-6">
+        Já tem uma conta? 
+        <a href="login.html" class="text-red-500 hover:underline">Entrar</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("formCadastro");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nome = document.getElementById("nome").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("senha").value.trim();
+
+      if (nome && email && senha) {
+        // Armazena os dados no localStorage (simulação de backend)
+        localStorage.setItem("usuario", nome);
+        localStorage.setItem("email", email);
+
+        // Redireciona para página principal
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+</body>
+</html>
+

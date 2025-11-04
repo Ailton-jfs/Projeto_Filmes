@@ -3,29 +3,140 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineMatch - Login</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Filmes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>🎬 CineMatch</h1>
-    <form id="formLogin">
-      <input type="text" id="nome" placeholder="Seu nome" required />
-      <input type="email" id="email" placeholder="Seu e-mail" required />
-      <input type="password" id="senha" placeholder="Sua senha" required />
-      <button type="submit">Entrar</button>
-    </form>
-    <p id="mensagem"></p>
-  </div>
+<body class="bg-black text-white font-sans">
 
+  <!-- Navbar -->
+  <header class="fixed w-full top-0 z-20 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-end items-center">
+    <div id="userArea"></div>
+  </header>
+
+  <!-- Banner principal -->
+  <section class="relative h-[80vh] flex items-end justify-start bg-cover bg-center"
+    style="background-image: url('https://image.tmdb.org/t/p/original/2lUYbD2C3XSuwqMUbDVDQuz9mqz.jpg');">
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+    <div class="relative z-10 p-10 max-w-xl">
+      <h2 class="text-5xl font-extrabold mb-4">Duna: Parte Dois</h2>
+      <p class="text-gray-300 mb-6">Paul Atreides se une aos Fremen em busca de vingança contra os conspiradores que destruíram sua família.</p>
+      <button class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg text-lg font-semibold transition">Assistir Agora</button>
+    </div>
+  </section>
+
+  <!-- Conteúdo -->
+  <main class="mt-[80vh] p-8 space-y-12">
+
+    <!-- Sessão 1 -->
+    <section>
+      <h3 class="text-2xl font-semibold mb-4">🔥 Filmes Populares</h3>
+      <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-3" id="populares"></div>
+    </section>
+
+    <!-- Sessão 2 -->
+    <section>
+      <h3 class="text-2xl font-semibold mb-4">🧠 Recomendados para Você</h3>
+      <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-3" id="recomendados"></div>
+    </section>
+
+    <!-- Sessão 3 -->
+    <section>
+      <h3 class="text-2xl font-semibold mb-4">🎭 Lançamentos Recentes</h3>
+      <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-3" id="lancamentos"></div>
+    </section>
+
+  </main>
+
+  <!-- JS -->
   <script>
-    const form = document.getElementById("formLogin");
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const nome = document.getElementById("nome").value;
-      localStorage.setItem("usuario", nome);
-      window.location.href = "preferencias.html";
-    });
+    const userArea = document.getElementById("userArea");
+    const usuario = localStorage.getItem("usuario");
+
+    // Exibe botão de login ou saudação
+    if (usuario) {
+      userArea.innerHTML = `
+        <div class="flex items-center gap-4">
+          <span class="text-lg">Olá, <strong>${usuario}</strong></span>
+          <button id="logout" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg">Sair</button>
+        </div>
+      `;
+      document.getElementById("logout").addEventListener("click", () => {
+        localStorage.removeItem("usuario");
+        window.location.reload();
+      });
+    } else {
+      userArea.innerHTML = `
+        <a href="login.html" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold">Entrar</a>
+      `;
+    }
+
+    // Função para criar cards horizontais estilo Netflix
+    function criarCard(filme) {
+      const card = document.createElement("div");
+      card.className = "min-w-[200px] relative group cursor-pointer transition-transform transform hover:scale-105";
+      card.innerHTML = `
+        <img src="${filme.img}" alt="${filme.titulo}" class="rounded-xl shadow-lg object-cover w-full h-[300px]" />
+        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+          <p class="text-white text-center px-2 font-semibold">${filme.titulo}</p>
+        </div>
+      `;
+
+      // Clique no card: redireciona com base no login
+      card.addEventListener("click", () => {
+        const usuario = localStorage.getItem("usuario");
+        if (usuario) {
+          window.open(filme.link, "_blank");
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      return card;
+    }
+
+    // Listas de filmes com links oficiais do TMDB
+    const filmesPopulares = [
+      { titulo: "Oppenheimer", img: "https://image.tmdb.org/t/p/w500/ptpr0kGAckfQkJeJIt8st5dglvd.jpg", link: "https://www.themoviedb.org/movie/872585-oppenheimer" },
+      { titulo: "Barbie", img: "https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg", link: "https://www.themoviedb.org/movie/346698-barbie" },
+      { titulo: "John Wick 4", img: "https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg", link: "https://www.themoviedb.org/movie/603692-john-wick-chapter-4" },
+      { titulo: "Guardiões da Galáxia 3", img: "https://image.tmdb.org/t/p/w500/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg", link: "https://www.themoviedb.org/movie/447365-guardians-of-the-galaxy-vol-3" },
+      { titulo: "Avatar 2", img: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg", link: "https://www.themoviedb.org/movie/76600-avatar-the-way-of-water" }
+    ];
+
+    const filmesRecomendados = [
+      { titulo: "Interstellar", img: "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg", link: "https://www.themoviedb.org/movie/157336-interstellar" },
+      { titulo: "Inception", img: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", link: "https://www.themoviedb.org/movie/27205-inception" },
+      { titulo: "Tenet", img: "https://image.tmdb.org/t/p/w500/k68nPLbIST6NP96JmTxmZijEvCA.jpg", link: "https://www.themoviedb.org/movie/577922-tenet" },
+      { titulo: "Duna", img: "https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg", link: "https://www.themoviedb.org/movie/438631-dune" }
+    ];
+
+    const filmesLancamentos = [
+      { titulo: "The Batman", img: "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg", link: "https://www.themoviedb.org/movie/414906-the-batman" },
+      { titulo: "Homem-Aranha: Sem Volta Para Casa", img: "https://image.tmdb.org/t/p/w500/fVzXp3NwovUlLe7fvoRynCmBPNc.jpg", link: "https://www.themoviedb.org/movie/634649-spider-man-no-way-home" },
+      { titulo: "Venom 2", img: "https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg", link: "https://www.themoviedb.org/movie/580489-venom-let-there-be-carnage" },
+      { titulo: "Matrix Resurrections", img: "https://image.tmdb.org/t/p/w500/8c4a8kE7PizaGQQnditMmI1xbRp.jpg", link: "https://www.themoviedb.org/movie/624860-the-matrix-resurrections" }
+    ];
+
+    // Renderiza as seções
+    const populares = document.getElementById("populares");
+    const recomendados = document.getElementById("recomendados");
+    const lancamentos = document.getElementById("lancamentos");
+
+    filmesPopulares.forEach(f => populares.appendChild(criarCard(f)));
+    filmesRecomendados.forEach(f => recomendados.appendChild(criarCard(f)));
+    filmesLancamentos.forEach(f => lancamentos.appendChild(criarCard(f)));
+
   </script>
+
+  <!-- Estilo opcional para esconder scrollbars -->
+  <style>
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </body>
 </html>
