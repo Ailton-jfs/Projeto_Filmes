@@ -24,7 +24,7 @@ const newUsuario = async (body: iUsuario) => {
   const hash = await bcrypt.hash(senha, 10);
   const query = `
     INSERT INTO usuario (nome, email, senha, preferencias, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, NOW(), NOW())
+    VALUES ($1, $2, $3, $4, NOW(), NOW())
   `;
   const [result]: any = await conn.execute(query, [nome, email, hash, preferencias]);
   return { id: result.insertId, nome, email, preferencias };
