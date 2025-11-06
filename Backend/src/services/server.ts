@@ -1,68 +1,99 @@
-import "dotenv/config"
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { config } from "dotenv";
-import router from "../routes/api"; // rotas principais
-import { Pool } from "pg"; // PostgreSQL
-import usuarioRouter from "../routes/usuarioRouter"; // suas rotas principais
-import filmesRouter from "../routes/filmesRouter";
-// Carrega variáveis do .env
+import router from "../routes/api";
+import { Pool } from "pg";
+import mysql from "mysql2/promise";
+
 config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração do PostgreSQL
-const pool = new Pool({
-  host: process.env.HOST,
-  port: 5432, // porta padrão PostgreSQL
-  user: process.env.USER,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
-});
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Rotas principais (prefixadas com /api)
-app.use("/api", router);
-
-// Endpoint de teste de conexão
-app.get("/api/test-db", async (req, res) => {
+// 🔹 Função principal assíncrona
+async function startServer() {
   try {
-    const client = await pool.connect();
-    client.release();
-    res.json({ success: true, message: "✅ Conexão com PostgreSQL OK!" });
+    // 🧩 Seleciona tipo de banco a partir do .env
+    const dbType = process.env.DB_TYPE || "mysql";
+
+    let mysqlPool: any = null;
+    let pgPool: any = null;
+
+    if (dbType === "mysql") {
+      // 🗄️ MySQL
+      mysqlPool = await mysql.createPool({
+        host: process.env.MYSQL_HOST || "localhost",
+        user: process.env.MYSQL_USER || "root",
+        password: process.env.MYSQL_PASSWORD || "",
+        database: process.env.MYSQL_DATABASE || "projeto_filmes_db",
+        port: Number(process.env.MYSQL_PORT) || 3306,
+      });
+
+      const [rows] = await mysqlPool.query("SELECT 1 + 1 AS result");
+      console.log("🦢 Conectado ao MySQL:", rows);
+    } 
+    else if (dbType === "postgres") {
+      // 🗄️ PostgreSQL
+      pgPool = new Pool({
+        host: process.env.POSTGRES_HOST || "localhost",
+        port: Number(process.env.POSTGRES_PORT) || 5432,
+        user: process.env.POSTGRES_USER || "postgres",
+        password: process.env.POSTGRES_PASSWORD || "",
+        database: process.env.POSTGRES_DATABASE || "postgres",
+      });
+
+      const pgClient = await pgPool.connect();
+      pgClient.release();
+      console.log("🐘 Conectado ao PostgreSQL");
+    } 
+    else {
+      throw new Error("❌ DB_TYPE inválido! Use 'mysql' ou 'postgres' no arquivo .env.");
+    }
+
+    // 🌐 Middleware global
+    app.use(
+      cors({
+        origin: ["http://127.0.0.1:5500", "http://localhost:5500"],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type"],
+      })
+    );
+    app.use(express.json());
+    app.use(express.static("public"));
+
+    // 🧭 Rotas principais (TMDB + Banco + IA)
+    app.use("/api", router);
+
+    // 🧪 Teste rápido de banco
+    app.get("/api/test-db", async (req, res) => {
+      try {
+        if (dbType === "mysql") {
+          const [rows] = await mysqlPool.query("SELECT 1 + 1 AS result");
+          return res.json({ success: true, db: "MySQL", result: rows });
+        } else {
+          const result = await pgPool.query("SELECT 1 + 1 AS result");
+          return res.json({ success: true, db: "PostgreSQL", result: result.rows });
+        }
+      } catch (err) {
+        console.error("❌ Erro no teste do banco:", err);
+        res.status(500).json({ success: false, error: err });
+      }
+    });
+
+    // 🏠 Rota raiz
+    app.get("/", (req, res) => {
+      res.send("🚀 API de Recomendação de Filmes rodando!");
+    });
+
+    // 🚀 Inicializa o servidor
+    app.listen(PORT, () => {
+      console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "❌ Falha na conexão", error: err });
+    console.error("❌ Erro ao iniciar servidor:", err);
   }
-});
+}
 
-// Servir HTML e CSS (se estiver na pasta public)
-// ✅ Middleware para CORS — deve vir antes das rotas
-app.use(cors({
-  origin: ["http://127.0.0.1:5500", "http://localhost:5500"], // Live Server
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"],
-}));
-
-// ✅ Middleware para interpretar JSON — deve vir antes das rotas
-app.use(express.json());
-
-// ✅ Servir arquivos estáticos (HTML, CSS, JS)
-app.use(express.static("public"));
-
-// ✅ Suas rotas principais
-app.use("/api/usuarios", usuarioRouter);
-app.use("/", filmesRouter);
-
-// ✅ Rota simples para teste
-app.get("/", (req, res) => {
-  res.send("API funcionando! 🚀");
-});
-
-// Inicia o servidor
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-});
+// 🚀 Executa a função principal
+startServer();

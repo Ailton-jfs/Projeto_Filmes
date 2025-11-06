@@ -1,18 +1,24 @@
-import { connection } from "./connectionModel";
+import { getConnection } from "./connectionModel";
 import iUsuario from "../interfaces/iUsuario";
 import bcrypt from "bcrypt";
 
+// 🔹 Lista todos os usuários
 const getAll = async () => {
-  const [rows]: any = await connection.execute("SELECT * FROM usuario");
+  const conn = await getConnection();
+  const [rows]: any = await conn.execute("SELECT * FROM usuario");
   return rows;
 };
 
+// 🔹 Busca um usuário pelo ID
 const getById = async (id: number) => {
-  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE id = ?", [id]);
+  const conn = await getConnection();
+  const [rows]: any = await conn.execute("SELECT * FROM usuario WHERE id = ?", [id]);
   return rows[0];
 };
 
+// 🔹 Cria um novo usuário
 const newUsuario = async (body: iUsuario) => {
+  const conn = await getConnection();
   const { nome, email, senha, preferencias } = body;
 
   const hash = await bcrypt.hash(senha, 10);
@@ -20,17 +26,21 @@ const newUsuario = async (body: iUsuario) => {
     INSERT INTO usuario (nome, email, senha, preferencias, createdAt, updatedAt)
     VALUES (?, ?, ?, ?, NOW(), NOW())
   `;
-  const [result]: any = await connection.execute(query, [nome, email, hash, preferencias]);
+  const [result]: any = await conn.execute(query, [nome, email, hash, preferencias]);
   return { id: result.insertId, nome, email, preferencias };
 };
 
+// 🔹 Busca usuário por e-mail
 const getByEmail = async (email: string) => {
-  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE email = ?", [email]);
+  const conn = await getConnection();
+  const [rows]: any = await conn.execute("SELECT * FROM usuario WHERE email = ?", [email]);
   return rows[0];
 };
 
-// ✅ AGORA CORRETO — não usa req/res, e aceita (id, updates)
+// 🔹 Atualização parcial (edição de campos específicos)
 const editPartial = async (id: number, updates: Partial<iUsuario>) => {
+  const conn = await getConnection();
+
   const fields: string[] = [];
   const values: any[] = [];
 
@@ -59,15 +69,16 @@ const editPartial = async (id: number, updates: Partial<iUsuario>) => {
   const query = `UPDATE usuario SET ${fields.join(", ")}, updatedAt = NOW() WHERE id = ?`;
   values.push(id);
 
-  await connection.execute(query, values);
+  await conn.execute(query, values);
 
-  const [rows]: any = await connection.execute("SELECT * FROM usuario WHERE id = ?", [id]);
+  const [rows]: any = await conn.execute("SELECT * FROM usuario WHERE id = ?", [id]);
   return rows[0];
 };
 
-// ✅ Mantém apenas a versão que usa (id: number)
+// 🔹 Remove usuário pelo ID
 const removeUsuario = async (id: number) => {
-  const [result]: any = await connection.execute("DELETE FROM usuario WHERE id = ?", [id]);
+  const conn = await getConnection();
+  const [result]: any = await conn.execute("DELETE FROM usuario WHERE id = ?", [id]);
   return result.affectedRows > 0;
 };
 

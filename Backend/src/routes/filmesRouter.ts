@@ -8,228 +8,264 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// 🔑 NOVO TIPO DE RETORNO (Para incluir os dados do pôster)
+type MovieData = {
+    links: any[];
+    poster_path: string | null;
+    poster_url: string | null;
+};
+
 // ------------------------------------------------------------------
-// 🔧 Função auxiliar para buscar links de streaming (TMDB)
+// 🔧 Função auxiliar: AGORA CHAMA getMovieDataAndLinks (Pega pôster e links)
 // ------------------------------------------------------------------
-async function getStreamingLinks(movieTitle: string): Promise<any[]> {
-  const defaultResponse: any[] = [];
+async function getMovieDataAndLinks(movieTitle: string): Promise<MovieData> {
+  const defaultResponse: MovieData = { links: [], poster_path: null, poster_url: null };
 
-  try {
-    // 1️⃣ Busca o ID do filme
-    const searchRes = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
-      params: { 
-        api_key: TMDB_API_KEY, 
-        query: movieTitle, 
-        language: "pt-BR" 
-      },
-    });
+  try {
+    // 1️⃣ Busca o ID do filme, POSTER e o Path
+    const searchRes = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
+      params: { 
+        api_key: TMDB_API_KEY, 
+        query: movieTitle, 
+        language: "pt-BR" 
+      },
+    });
 
-    const movieId: number | undefined = searchRes.data.results[0]?.id;
-    if (!movieId) return defaultResponse;
+    const firstResult = searchRes.data.results[0];
+    const movieId: number | undefined = firstResult?.id;
+    const posterPath: string | null = firstResult?.poster_path || null;
+    const posterUrl: string | null = posterPath 
+        ? `https://image.tmdb.org/t/p/w500${posterPath}` 
+        : null;
 
-    // 2️⃣ Busca provedores (onde assistir)
-    const providersRes = await axios.get(`${TMDB_BASE_URL}/movie/${movieId}/watch/providers`, {
-      params: { api_key: TMDB_API_KEY },
-    });
+    // Retorna os dados do poster, mesmo que não encontre o ID para links
+    if (!movieId) return { links: defaultResponse.links, poster_path: posterPath, poster_url: posterUrl };
 
-    const providers = providersRes.data.results["BR"];
-    if (!providers) return defaultResponse;
+    // 2️⃣ Busca provedores (onde assistir)
+    const providersRes = await axios.get(`${TMDB_BASE_URL}/movie/${movieId}/watch/providers`, {
+      params: { api_key: TMDB_API_KEY },
+    });
 
-    const links: any[] = [];
+    const providers = providersRes.data.results["BR"];
+    if (!providers) return { links: defaultResponse.links, poster_path: posterPath, poster_url: posterUrl };
 
-    if (providers.flatrate) {
-      providers.flatrate.forEach((p: any) => {
-        links.push({
-          plataforma: p.provider_name,
-          url: providers.link,
-        });
-      });
-    }
+    const links: any[] = [];
 
-    if (providers.rent || providers.buy) {
-      links.push({
-        plataforma: "Aluguel/Compra",
-        url: providers.link,
-      });
-    }
+    if (providers.flatrate) {
+      providers.flatrate.forEach((p: any) => {
+        links.push({
+          plataforma: p.provider_name,
+          url: providers.link,
+        });
+      });
+    }
 
-    return links;
-  } catch (error) {
-    console.error(`Erro ao buscar links de streaming para ${movieTitle}:`, error);
-    return defaultResponse;
-  }
+    if (providers.rent || providers.buy) {
+      links.push({
+        plataforma: "Aluguel/Compra",
+        url: providers.link,
+      });
+    }
+
+    return { links, poster_path: posterPath, poster_url: posterUrl };
+  } catch (error) {
+    console.error(`Erro ao buscar dados do TMDB para ${movieTitle}:`, error);
+    return defaultResponse;
+  }
 }
+
 
 // ------------------------------------------------------------------
 // 🔹 1. Filmes do TMDB (com links)
 // ------------------------------------------------------------------
 router.get("/filmes", async (req, res) => {
-  try {
-    const { generos } = req.query;
-    const { data } = await axios.get(`${TMDB_BASE_URL}/discover/movie`, {
-      params: {
-        api_key: TMDB_API_KEY,
-        language: "pt-BR",
-        sort_by: "popularity.desc",
-        with_genres: generos || "",
-      },
-    });
+  try {
+    const { generos } = req.query;
+    const { data } = await axios.get(`${TMDB_BASE_URL}/discover/movie`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: "pt-BR",
+        sort_by: "popularity.desc",
+        with_genres: generos || "",
+      },
+    });
 
-    let filmes: any[] = data.results.slice(0, 5).map((filme: any) => ({
-      id: filme.id,
-      title: filme.title,
-      overview: filme.overview,
-      poster_path: filme.poster_path,
-    }));
+    let filmes: any[] = data.results.slice(0, 5).map((filme: any) => ({
+      id: filme.id,
+      title: filme.title,
+      overview: filme.overview,
+      poster_path: filme.poster_path,
+    }));
 
-    const filmesComLinksPromises = filmes.map(async (filme: any) => {
-      filme.links = await getStreamingLinks(filme.title);
-      return filme;
-    });
+    const filmesComLinksPromises = filmes.map(async (filme: any) => {
+      // 🔑 CHAMA A NOVA FUNÇÃO
+      const tmdbData = await getMovieDataAndLinks(filme.title);
+      filme.links = tmdbData.links;
+      filme.poster_path = filme.poster_path || tmdbData.poster_path; // Prioriza o poster do discover
+      filme.poster_url = tmdbData.poster_url;
+      return filme;
+    });
 
-    const filmesComLinks = await Promise.all(filmesComLinksPromises);
+    const filmesComLinks = await Promise.all(filmesComLinksPromises);
 
-    res.json(filmesComLinks);
-  } catch (error) {
-    console.error("❌ Erro ao buscar filmes do TMDB:", error);
-    res.status(500).json({ erro: "Erro ao buscar filmes do TMDB" });
-  }
+    res.json(filmesComLinks);
+  } catch (error) {
+    console.error("❌ Erro ao buscar filmes do TMDB:", error);
+    res.status(500).json({ erro: "Erro ao buscar filmes do TMDB" });
+  }
 });
 
 // ------------------------------------------------------------------
 // 🔹 2. Rota TMDB original (busca ou discover)
 // ------------------------------------------------------------------
 router.get("/api/tmdb", async (req, res) => {
-  try {
-    const { generos, busca } = req.query;
-    const endpoint = busca ? "/search/movie" : "/discover/movie";
+  try {
+    const { generos, busca } = req.query;
+    const endpoint = busca ? "/search/movie" : "/discover/movie";
 
-    const params: any = {
-      api_key: TMDB_API_KEY,
-      language: "pt-BR",
-    };
-    if (busca) params.query = busca;
-    else params.with_genres = generos || "";
+    const params: any = {
+      api_key: TMDB_API_KEY,
+      language: "pt-BR",
+    };
+    if (busca) params.query = busca;
+    else params.with_genres = generos || "";
 
-    const { data } = await axios.get(`${TMDB_BASE_URL}${endpoint}`, { params });
+    const { data } = await axios.get(`${TMDB_BASE_URL}${endpoint}`, { params });
 
-    const filmesComLinks = await Promise.all(
-      data.results.map(async (filme: any) => {
-        const title = filme.title || filme.name;
-        filme.links = await getStreamingLinks(title);
-        return filme;
-      })
-    );
+    const filmesComLinks = await Promise.all(
+      data.results.map(async (filme: any) => {
+        const title = filme.title || filme.name;
+        // 🔑 CHAMA A NOVA FUNÇÃO
+        const tmdbData = await getMovieDataAndLinks(title);
+        filme.links = tmdbData.links;
+        filme.poster_path = filme.poster_path || tmdbData.poster_path; // Prioriza o poster do discover
+        filme.poster_url = tmdbData.poster_url;
+        return filme;
+      })
+    );
 
-    res.json(filmesComLinks);
-  } catch (error) {
-    console.error("❌ ERRO FATAL NA ROTA /api/tmdb:", error);
-    res.status(500).json({ erro: "Erro ao buscar filmes do TMDB" });
-  }
+    res.json(filmesComLinks);
+  } catch (error) {
+    console.error("❌ ERRO FATAL NA ROTA /api/tmdb:", error);
+    res.status(500).json({ erro: "Erro ao buscar filmes do TMDB" });
+  }
 });
 
 // ------------------------------------------------------------------
-// 🔹 3. Rota da IA — usa preferências livres do usuário
+// 🔹 3. Rota da IA — usa preferências livres do usuário (CORRIGIDA)
 // ------------------------------------------------------------------
 router.post("/api/chat", async (req, res) => {
-  try {
-    const { preferencias, nome } = req.body;
+  try {
+    const { preferencias, nome } = req.body;
 
-    if (!preferencias || !nome) {
-      return res.status(400).json({ erro: "Campos obrigatórios ausentes." });
-    }
+    if (!preferencias || !nome) {
+      return res.status(400).json({ erro: "Campos obrigatórios ausentes." });
+    }
 
-    const prompt = `
-      O usuário ${nome} gosta dos seguintes tipos de filmes: ${preferencias}.
-      Sugira **3 filmes populares e interessantes** para ele.
-      **NÃO inclua links de streaming.**
-      Retorne estritamente em JSON:
-      [
-        {
-          "titulo": "Nome do Filme",
-          "descricao": "Resumo curto explicando por que ele iria gostar",
-          "links": []
-        }
-      ]
-    `;
+    const prompt = `
+      O usuário ${nome} gosta dos seguintes tipos de filmes: ${preferencias}.
+      Sugira **3 filmes populares e interessantes** para ele.
+      **NÃO inclua links de streaming.**
+      Retorne estritamente em JSON:
+      [
+        {
+          "titulo": "Nome do Filme",
+          "descricao": "Resumo curto explicando por que ele iria gostar",
+          "links": []
+        }
+      ]
+    `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
-    });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.8,
+    });
 
-    let content = completion?.choices?.[0]?.message?.content?.trim() || "[]";
-    content = content.replace(/```json|```/g, "").trim();
+    let content = completion?.choices?.[0]?.message?.content?.trim() || "[]";
+    content = content.replace(/```json|```/g, "").trim();
 
-    let recomendacoes: any[] = [];
-    try {
-      recomendacoes = JSON.parse(content);
-    } catch {
-      recomendacoes = [{ titulo: "Erro ao interpretar resposta", descricao: content, links: [] }];
-    }
+    let recomendacoes: any[] = [];
+    try {
+      recomendacoes = JSON.parse(content);
+    } catch {
+      recomendacoes = [{ titulo: "Erro ao interpretar resposta", descricao: content, links: [] }];
+    }
 
-    // 🚀 Busca de links + pôster via TMDB
-    const promises = recomendacoes.map(async (filme: any) => {
-      if (filme.titulo) {
-        filme.links = await getStreamingLinks(filme.titulo);
+    // 🚀 Busca de links + pôster via TMDB
+    const promises = recomendacoes.map(async (filme: any) => {
+      if (filme.titulo) {
+        // 🔑 Usa a nova função unificada e elimina a busca de pôster duplicada
+        const tmdbData = await getMovieDataAndLinks(filme.titulo);
+        filme.links = tmdbData.links;
+        filme.poster_path = tmdbData.poster_path;
+        filme.poster_url = tmdbData.poster_url;
+      }
+      return filme;
+    });
 
-        try {
-          const searchRes = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
-            params: { api_key: TMDB_API_KEY, query: filme.titulo, language: "pt-BR" },
-          });
+    const recomendacoesComLinks = await Promise.all(promises);
 
-          const posterPath = searchRes.data.results[0]?.poster_path || null;
-          filme.poster_url = posterPath
-            ? `https://image.tmdb.org/t/p/w500${posterPath}`
-            : null;
-        } catch (err) {
-          console.warn(`⚠️ Erro ao buscar banner para ${filme.titulo}`);
-          filme.poster_url = null;
-        }
-      }
-      return filme;
-    });
-
-    const recomendacoesComLinks = await Promise.all(promises);
-
-    res.json({ recomendacoes: recomendacoesComLinks });
-  } catch (err: any) {
-    console.error("❌ Erro no ChatGPT:", err.message);
-    res.status(500).json({ erro: "Falha ao gerar recomendações com a IA." });
-  }
+    res.json({ recomendacoes: recomendacoesComLinks });
+  } catch (err: any) {
+    console.error("❌ Erro no ChatGPT:", err.message);
+    res.status(500).json({ erro: "Falha ao gerar recomendações com a IA." });
+  }
 });
 
 // ------------------------------------------------------------------
 // 🔹 4. Outras rotas (populares e recomendação via Python)
 // ------------------------------------------------------------------
 router.get("/api/filmes/populares", async (req, res) => {
-  try {
-    const { data } = await axios.get(`${TMDB_BASE_URL}/movie/popular`, {
-      params: { api_key: TMDB_API_KEY, language: "pt-BR" },
-    });
-    res.json(data.results);
-  } catch (error) {
-    res.status(500).json({ erro: "Erro ao buscar filmes populares" });
-  }
+  try {
+    const { data } = await axios.get(`${TMDB_BASE_URL}/movie/popular`, {
+      params: { api_key: TMDB_API_KEY, language: "pt-BR" },
+    });
+    res.json(data.results);
+  } catch (error) {
+    res.status(500).json({ erro: "Erro ao buscar filmes populares" });
+  }
 });
 
+// 🔑 Rota de ML: AGORA BUSCA POSTER E LINKS
 router.get("/api/filmes/recomendar", async (req, res) => {
-  const { email } = req.query;
-  if (!email) return res.status(400).json({ erro: "Email não informado." });
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ erro: "Email não informado." });
 
-  const python = spawn("python", ["./ml/train.py", String(email)]);
-  let dados = "";
-  python.stdout.on("data", (data) => (dados += data.toString()));
+  // Ajuste o nome do arquivo se for 'train_model.py'
+  const python = spawn("python", ["./ml/train_model.py", String(email)]); 
+  let dados = "";
+  python.stdout.on("data", (data) => (dados += data.toString()));
 
-  python.on("close", () => {
-    try {
-      const recomendacoes = JSON.parse(dados);
-      res.json(recomendacoes);
-    } catch {
-      res.status(500).json({ erro: "Erro ao processar recomendação" });
-    }
-  });
+  // 🔑 Torna a função de 'close' assíncrona para usar await
+  python.on("close", async () => { 
+    try {
+      // 1. Recebe a lista de filmes do Python (apenas título/voto)
+      const recomendacoesPyt: any[] = JSON.parse(dados);
+
+      // 2. Enriquecimento dos dados com TMDB
+      const promises = recomendacoesPyt.map(async (filme: any) => {
+        // Assumimos que o Python retorna a chave 'title'
+        if (filme.title) { 
+          const tmdbData = await getMovieDataAndLinks(filme.title);
+          
+          // Anexa os dados do TMDB
+          filme.links = tmdbData.links;
+          filme.poster_path = tmdbData.poster_path;
+          filme.poster_url = tmdbData.poster_url;
+        }
+        return filme;
+      });
+
+      // 3. Espera todas as buscas do TMDB terminarem
+      const recomendacoesComLinks = await Promise.all(promises);
+
+      res.json(recomendacoesComLinks);
+    } catch (err) {
+      console.error("❌ Erro ao processar recomendação do ML:", err);
+      res.status(500).json({ erro: "Erro ao processar recomendação do ML" });
+    }
+  });
 });
 
 // ------------------------------------------------------------------

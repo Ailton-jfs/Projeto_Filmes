@@ -1,40 +1,36 @@
-// src/routes/api.ts
 import { Router } from "express";
 import axios from "axios";
+import { config } from "dotenv";
 import filmeRouter from "./filmesRouter";
 import usuarioRouter from "./usuarioRouter";
 import recomendacaoRouter from "./recomendacaoRouter";
 
+config(); // carrega variáveis do .env
+
 const router = Router();
-
-// 🔑 Sua chave da API do TMDb
-import { config } from "dotenv";
-config(); // carrega as variáveis do .env
-
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-
-// 🏠 Rota básica
+// 🏠 Rota inicial para verificar se o servidor está ativo
 router.get("/", (req, res) => {
-  res.json({ message: "API de Recomendação de Filmes 🎬" });
+  res.json({ message: "🎬 API de Recomendação de Filmes está online!" });
 });
 
-// 🎥 Rota: buscar filmes populares
-router.get("/filmes/populares", async (req, res) => {
+// 🎥 Rota direta: filmes populares do TMDB
+router.get("/populares", async (req, res) => {
   try {
     const { data } = await axios.get(`${TMDB_BASE_URL}/movie/popular`, {
       params: { api_key: TMDB_API_KEY, language: "pt-BR" },
     });
     res.json(data.results);
   } catch (error) {
-    console.error("Erro ao buscar filmes populares:", error);
-    res.status(500).json({ error: "Erro ao buscar filmes populares" });
+    console.error("❌ Erro ao buscar filmes populares:", error);
+    res.status(500).json({ erro: "Erro ao buscar filmes populares" });
   }
 });
 
-// 🎞️ Rota: recomendações com base em um filme
-router.get("/filmes/:id/recomendacoes", async (req, res) => {
+// 🎞️ Rota direta: recomendações baseadas em um ID de filme
+router.get("/recomendacoes/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const { data } = await axios.get(`${TMDB_BASE_URL}/movie/${id}/recommendations`, {
@@ -42,14 +38,14 @@ router.get("/filmes/:id/recomendacoes", async (req, res) => {
     });
     res.json(data.results);
   } catch (error) {
-    console.error("Erro ao buscar recomendações:", error);
-    res.status(500).json({ error: "Erro ao buscar recomendações" });
+    console.error("❌ Erro ao buscar recomendações:", error);
+    res.status(500).json({ erro: "Erro ao buscar recomendações" });
   }
 });
 
-// ✅ Integra suas rotas secundárias
-router.use("/filmes", filmeRouter);
-router.use("/usuarios", usuarioRouter);
-router.use("/recomendacao", recomendacaoRouter);
+// ✅ Importa as rotas modulares
+router.use("/filmes", filmeRouter);           // TMDB + IA
+router.use("/usuarios", usuarioRouter);       // Banco de dados
+router.use("/recomendacao", recomendacaoRouter); // IA personalizada
 
 export default router;

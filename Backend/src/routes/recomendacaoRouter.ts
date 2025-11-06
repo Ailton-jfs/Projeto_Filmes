@@ -10,34 +10,55 @@ const router = Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY || "SUA_CHAVE_TMDB_AQUI";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-router.get("/", async (req, res) => {
-  const { preferencias } = req.query;
+router.post("/", async (req, res) => {
+  const { preferencias } = req.body;
 
   if (!preferencias) {
     return res.status(400).json({ erro: "Informe suas preferências de filmes." });
   }
 
   try {
-    // 1️⃣ Gera lista de filmes sugeridos com ChatGPT
+    // 1️⃣ Prompt melhorado para o GPT responder apenas JSON puro
     const prompt = `
-      Sou um especialista em cinema. Baseado nas preferências "${preferencias}",
-      recomende 5 filmes populares que combinam com esse gosto.
-      Retorne apenas um JSON puro, no formato:
+      Você é um especialista em cinema.
+      Baseado nas preferências: "${preferencias}",
+      recomende 5 filmes populares que combinem com esse gosto.
+      
+      Responda SOMENTE com um JSON válido no formato:
       [
         {"titulo": "nome do filme"},
         {"titulo": "nome do filme"},
-        ...
+        {"titulo": "nome do filme"},
+        {"titulo": "nome do filme"},
+        {"titulo": "nome do filme"}
       ]
+
+      Não adicione comentários, texto fora do JSON, nem blocos de markdown.
     `;
 
+    // 🔹 Chamada ao modelo GPT
     const resposta = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
+      temperature: 0.7,
     });
 
-    const texto = resposta.choices[0]?.message?.content || "[]";
-    const listaChatGPT = JSON.parse(texto);
+    const texto = resposta.choices?.[0]?.message?.content || "[]";
+    console.log("🧠 Resposta bruta do GPT:", texto);
+
+    // 🧹 Remove blocos de markdown e espaços extras
+    const textoLimpo = texto
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    let listaChatGPT: any[] = [];
+    try {
+      listaChatGPT = JSON.parse(textoLimpo);
+    } catch (erro) {
+      console.warn("⚠️ Erro ao converter resposta do GPT em JSON. Conteúdo retornado:", textoLimpo);
+      return res.status(500).json({ erro: "Erro ao processar a resposta do ChatGPT." });
+    }
 
     // 2️⃣ Busca informações reais no TMDb
     const resultadosDetalhados = [];
@@ -57,20 +78,22 @@ router.get("/", async (req, res) => {
           resultadosDetalhados.push({
             titulo: filme.title,
             descricao: filme.overview,
-            poster: `https://image.tmdb.org/t/p/w500${filme.poster_path}`,
+            poster: filme.poster_path
+              ? `https://image.tmdb.org/t/p/w500${filme.poster_path}`
+              : null,
             nota: filme.vote_average,
             ano: filme.release_date?.split("-")[0],
           });
         }
-      } catch (erro) {
-        console.warn(`❌ Erro ao buscar ${item.titulo} no TMDb`);
+      } catch {
+        console.warn(`❌ Erro ao buscar "${item.titulo}" no TMDb`);
       }
     }
 
     // 3️⃣ Retorna os filmes encontrados
     res.json(resultadosDetalhados);
   } catch (erro) {
-    console.error("Erro ao gerar recomendações:", erro);
+    console.error("❌ Erro ao gerar recomendações:", erro);
     res.status(500).json({ erro: "Falha ao gerar recomendações." });
   }
 });

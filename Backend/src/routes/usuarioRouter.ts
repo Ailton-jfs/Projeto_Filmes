@@ -8,6 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "chave_secreta";
 
 // Rota de cadastro de usuário (salva no MySQL)
 router.post("/cadastrar", async (req, res) => {
+  console.log("📦 Body recebido:", req.body); 
+
   try {
     const { nome, email, senha, preferencias } = req.body;
 
