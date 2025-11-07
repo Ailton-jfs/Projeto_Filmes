@@ -45,33 +45,40 @@
       window.location.href = "perfil.html";
     }
 
-    // Preenche campos com dados atuais
-    const usuario = JSON.parse(localStorage.getItem("dadosUsuario"));
-    if (!usuario) window.location.href = "login.html";
+    document.addEventListener("DOMContentLoaded", () => {
+      const usuario = JSON.parse(localStorage.getItem("dadosUsuario"));
 
-    document.getElementById("nome").value = usuario?.nome || "";
-    document.getElementById("email").value = usuario?.email || "";
+      // Se não existir usuário, redireciona
+      if (usuario || !usuario.nome || !usuario.email) {
+        window.location.href = "editar.html";
+        return;
+      }
 
-    // Atualiza dados
-    const form = document.getElementById("formEditar");
-    const msg = document.getElementById("mensagem");
+      // Preenche os campos com os dados atuais
+      document.getElementById("nome").value = usuario.nome || "";
+      document.getElementById("email").value = usuario.email || "";
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const nome = document.getElementById("nome").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const senha = document.getElementById("senha").value.trim();
+      const form = document.getElementById("formEditar");
+      const msg = document.getElementById("mensagem");
 
-      const novosDados = { nome, email, senha };
-      localStorage.setItem("dadosUsuario", JSON.stringify(novosDados));
-      localStorage.setItem("usuario", nome);
+      // Atualiza dados no localStorage
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const nome = document.getElementById("nome").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const senha = document.getElementById("senha").value.trim();
 
-      msg.textContent = "✅ Dados atualizados com sucesso!";
-      msg.className = "text-green-400 text-center mt-4";
+        const novosDados = { nome, email, senha };
+        localStorage.setItem("dadosUsuario", JSON.stringify(novosDados));
+        localStorage.setItem("usuario", nome);
 
-      setTimeout(() => {
-        window.location.href = "perfil.html";
-      }, 1000);
+        msg.textContent = "✅ Dados atualizados com sucesso!";
+        msg.className = "text-green-400 text-center mt-4";
+
+        setTimeout(() => {
+          window.location.href = "perfil.html";
+        }, 1000);
+      });
     });
   </script>
 </body>
