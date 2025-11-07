@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meu Perfil - Cine+</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black text-white font-sans min-h-screen relative">
+
+  <!-- Navbar -->
+  <header class="fixed w-full top-0 z-20 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-gray-800">
+    <button onclick="voltar()" class="text-gray-400 hover:text-white transition flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      Voltar
+    </button>
+    <h1 class="text-2xl font-bold text-red-600">Cine+</h1>
+    <div></div>
+  </header>
+
+  <!-- Fundo cinematográfico -->
+  <div class="absolute inset-0 bg-[url('https://image.tmdb.org/t/p/original/wRxLAw4l17LqiFcPLkobriPTZAw.jpg')] bg-cover bg-center opacity-40"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black"></div>
+
+  <!-- Conteúdo principal -->
+  <main class="relative z-10 pt-28 flex flex-col items-center text-center px-4">
+    <div class="bg-gray-900/70 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-2xl w-full mx-auto">
+
+      <!-- Foto e Nome -->
+      <div class="flex flex-col items-center mb-6">
+        <div class="relative">
+          <img id="fotoPerfil" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+               alt="Avatar" class="w-28 h-28 rounded-full border-4 border-red-600 shadow-lg object-cover">
+        </div>
+        <h2 id="nomeUsuario" class="text-3xl font-bold mt-4"></h2>
+        <p id="emailUsuario" class="text-gray-400 text-lg mt-1"></p>
+      </div>
+
+      <hr class="border-gray-700 my-6">
+
+      <!-- Estatísticas (exemplo para parecer mais real) -->
+      <div class="grid grid-cols-3 text-center gap-4">
+        <div>
+          <p class="text-2xl font-bold text-red-500">34</p>
+          <p class="text-gray-400 text-sm">Filmes Assistidos</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-red-500">12</p>
+          <p class="text-gray-400 text-sm">Favoritos</p>
+        </div>
+        <div>
+          <p class="text-2xl font-bold text-red-500">5</p>
+          <p class="text-gray-400 text-sm">Listas Criadas</p>
+        </div>
+      </div>
+
+      <hr class="border-gray-700 my-6">
+
+      <!-- Botões -->
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <button onclick="editarPerfil()" 
+          class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg text-lg font-semibold transition w-full sm:w-auto">
+          ⚙️ Editar Perfil
+        </button>
+        <button onclick="sair()" 
+          class="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-lg text-lg font-semibold transition w-full sm:w-auto">
+          🚪 Sair
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- Funções de navegação ---
+    function voltar() {
+      window.location.href = "index.html";
+    }
+
+    function editarPerfil() {
+      window.location.href = "editar.html";
+    }
+
+    function sair() {
+      localStorage.removeItem("usuario");
+      localStorage.removeItem("dadosUsuario");
+      window.location.href = "login.html";
+    }
+
+    // --- Carregar dados do usuário ---
+    const dados = JSON.parse(localStorage.getItem("dadosUsuario"));
+    const nomeLocal = localStorage.getItem("usuario");
+
+    if (dados) {
+      document.getElementById("nomeUsuario").textContent = dados.nome || nomeLocal;
+      document.getElementById("emailUsuario").textContent = dados.email || "E-mail não informado";
+    } else if (nomeLocal) {
+      document.getElementById("nomeUsuario").textContent = nomeLocal;
+      document.getElementById("emailUsuario").textContent = "E-mail não informado";
+    } else {
+      // se o usuário não estiver logado, redireciona automaticamente
+      window.location.href = "login.html";
+    }
+  </script>
+
+</body>
+</html>

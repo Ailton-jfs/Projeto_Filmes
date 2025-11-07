@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filmes</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cine+ - Filmes</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .carrossel { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+    .carousel-btn { background: rgba(0,0,0,0.55); }
+    .search-input { transition: all 0.3s ease; width: 180px; }
+    .search-input:focus { width: 260px; }
+  </style>
 </head>
 <body class="bg-black text-white font-sans">
 
-  <!-- Navbar -->
-  <header class="fixed w-full top-0 z-20 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-gray-800">
-    <!-- Logo -->
+  <!-- NAVBAR -->
+  <header class="fixed w-full top-0 z-30 bg-black/80 backdrop-blur-md px-6 md:px-8 py-4 flex justify-between items-center border-b border-gray-800">
     <div class="flex items-center gap-6">
       <h1 class="text-2xl font-bold text-red-600">Cine+</h1>
       <nav class="hidden md:flex gap-6 text-gray-300">
@@ -20,55 +27,123 @@
       </nav>
     </div>
 
-    <!-- Área do usuário -->
-    <div id="userArea" class="relative"></div>
+    <!-- BARRA DE BUSCA -->
+    <div class="flex items-center gap-4">
+      <div id="searchContainer" class="relative hidden md:block">
+        <input id="searchInput" type="text" placeholder="Buscar filmes..."
+          class="search-input bg-gray-800 border border-gray-700 rounded-full px-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 placeholder-gray-400 text-white" />
+        <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <div id="userArea" class="relative"></div>
+    </div>
   </header>
 
-  <!-- Banner principal -->
-  <section id="bannerDuna" class="relative h-[80vh] flex items-end justify-start bg-cover bg-center cursor-pointer"
+  <!-- BANNER -->
+  <section id="bannerDuna" class="relative h-[90vh] flex items-end justify-start bg-cover bg-center cursor-pointer"
     style="background-image: url('https://image.tmdb.org/t/p/original/2lUYbD2C3XSuwqMUbDVDQuz9mqz.jpg');">
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
-    <div class="relative z-10 p-10 max-w-xl">
-      <h2 class="text-5xl font-extrabold mb-4">Duna: Parte Dois</h2>
-      <p class="text-gray-300 mb-6">
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
+
+    <div class="relative z-10 p-6 md:p-10 max-w-xl">
+      <h2 class="text-4xl md:text-5xl font-extrabold mb-3">Duna: Parte Dois</h2>
+      <p class="text-gray-300 mb-6 max-w-lg">
         Paul Atreides se une aos Fremen em busca de vingança contra os conspiradores que destruíram sua família.
       </p>
-      <button class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg text-lg font-semibold transition">
+      <button id="btnAssistirDuna" class="bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg text-lg font-semibold transition">
         Assistir Agora
       </button>
     </div>
   </section>
 
-  <!-- Conteúdo -->
-  <main class="mt-[80vh] p-8 space-y-12">
+  <!-- CONTEÚDO -->
+  <main class="mt-[15vh] p-6 md:p-8 space-y-12">
 
-    <!-- Sessão 1 -->
+    <!-- RESULTADOS DA BUSCA -->
+    <section id="resultadosBusca" class="hidden">
+      <h3 class="text-2xl font-semibold mb-4">🔍 Resultados da Busca</h3>
+      <div class="relative">
+        <button data-target="buscaContainer" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div id="buscaContainer" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+        <button data-target="buscaContainer" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- FILMES POPULARES -->
     <section>
       <h3 class="text-2xl font-semibold mb-4">🔥 Filmes Populares</h3>
-      <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-3" id="populares"></div>
+      <div class="relative">
+        <button data-target="populares" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div id="populares" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+        <button data-target="populares" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </section>
 
-    <!-- Sessão 2 -->
+    <!-- LANÇAMENTOS -->
     <section>
-      <h3 class="text-2xl font-semibold mb-4">🧠 Recomendados para Você</h3>
-      <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-3" id="recomendados"></div>
+      <h3 class="text-2xl font-semibold mb-4">🎬 Lançamentos Recentes</h3>
+      <div class="relative">
+        <button data-target="lancamentos" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div id="lancamentos" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+        <button data-target="lancamentos" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </section>
 
-    <!-- Sessão 3 -->
+    <!-- DESCUBRA -->
     <section>
-      <h3 class="text-2xl font-semibold mb-4">🎭 Lançamentos Recentes</h3>
-      <div class="flex gap-4 overflow-x-auto scrollbar-hide pb-3" id="lancamentos"></div>
+      <h3 class="text-2xl font-semibold mb-4">💡 Descubra Novos Filmes</h3>
+      <div class="relative">
+        <button data-target="descubra" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div id="descubra" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+        <button data-target="descubra" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </section>
 
   </main>
 
-  <!-- JS -->
   <script>
-    const userArea = document.getElementById("userArea");
+    const API_KEY = "7a06d5be8eb8fc9cf8aa4de226aefdba";
+    const BASE_URL = "https://api.themoviedb.org/3";
+    const IMG_URL = "https://image.tmdb.org/t/p/w500";
     const usuario = localStorage.getItem("usuario");
+    const userArea = document.getElementById("userArea");
+    const searchContainer = document.getElementById("searchContainer");
 
-    // Exibe menu do usuário ou botão de login
+    // Navbar usuário
     if (usuario) {
+      searchContainer.classList.remove("hidden");
       userArea.innerHTML = `
         <div class="relative group">
           <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition">
@@ -78,93 +153,94 @@
             </svg>
           </button>
           <div class="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg hidden group-hover:block">
-            <a href="#" class="block px-4 py-2 hover:bg-gray-800">👤 Ver Perfil</a>
-            <a href="#" class="block px-4 py-2 hover:bg-gray-800">⚙️ Alterar Dados</a>
+            <a href="perfil.html" class="block px-4 py-2 hover:bg-gray-800">👤 Ver Perfil</a>
+            <a href="editar.html" class="block px-4 py-2 hover:bg-gray-800">⚙️ Alterar Dados</a>
             <button id="logout" class="block w-full text-left px-4 py-2 hover:bg-gray-800 text-red-400">🚪 Sair</button>
           </div>
-        </div>
-      `;
+        </div>`;
       document.getElementById("logout").addEventListener("click", () => {
         localStorage.removeItem("usuario");
-        window.location.reload();
+        window.location.href = "login.html";
       });
     } else {
-      userArea.innerHTML = `
-        <a href="login.html" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold">Entrar</a>
-      `;
+      userArea.innerHTML = `<a href="login.html" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold">Entrar</a>`;
     }
 
-    // Banner clicável (Duna)
-    const banner = document.getElementById("bannerDuna");
-    banner.addEventListener("click", () => {
-      const usuario = localStorage.getItem("usuario");
-      if (usuario) {
-        window.open("https://www.themoviedb.org/movie/693134-dune-part-two", "_blank");
-      } else {
-        window.location.href = "login.html";
+    // Banner Duna
+    document.getElementById("btnAssistirDuna").addEventListener("click", () => {
+      if (usuario) window.open("https://www.themoviedb.org/movie/693134-dune-part-two", "_blank");
+      else window.location.href = "login.html";
+    });
+
+    // Criar cards
+    function criarCard(filme) {
+      if (!filme.poster_path) return null;
+      const div = document.createElement("div");
+      div.className = "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
+      div.innerHTML = `
+        <img src="${IMG_URL + filme.poster_path}" class="rounded-xl shadow-lg object-cover w-full h-[280px]" alt="${filme.title}">
+        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+          <div class="text-center"><p class="text-white text-sm font-semibold">${filme.title}</p></div>
+        </div>`;
+      div.addEventListener("click", () => window.open(`https://www.themoviedb.org/movie/${filme.id}`, "_blank"));
+      return div;
+    }
+
+    async function carregarFilmes(endpoint, containerId) {
+      const container = document.getElementById(containerId);
+      try {
+        const res = await fetch(`${BASE_URL}${endpoint}?api_key=${API_KEY}&language=pt-BR&page=1`);
+        const data = await res.json();
+        container.innerHTML = "";
+        data.results.forEach(f => {
+          const card = criarCard(f);
+          if (card) container.appendChild(card);
+        });
+      } catch {
+        container.innerHTML = `<p class="text-gray-400">Erro ao carregar filmes</p>`;
+      }
+    }
+
+    carregarFilmes("/movie/popular", "populares");
+    carregarFilmes("/movie/now_playing", "lancamentos");
+    carregarFilmes("/movie/top_rated", "descubra");
+
+    // Busca
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter" && searchInput.value.trim() !== "") {
+        const query = searchInput.value.trim();
+        const container = document.getElementById("buscaContainer");
+        const secao = document.getElementById("resultadosBusca");
+        secao.classList.remove("hidden");
+        container.innerHTML = `<p class="text-gray-400">Buscando "${query}"...</p>`;
+        try {
+          const res = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+          const data = await res.json();
+          container.innerHTML = "";
+          if (data.results.length === 0) {
+            container.innerHTML = `<p class="text-gray-400">Nenhum filme encontrado.</p>`;
+            return;
+          }
+          data.results.forEach(f => {
+            const card = criarCard(f);
+            if (card) container.appendChild(card);
+          });
+        } catch {
+          container.innerHTML = `<p class="text-gray-400">Erro na busca.</p>`;
+        }
       }
     });
 
-    // Função para criar cards horizontais estilo Netflix
-    function criarCard(filme) {
-      const card = document.createElement("div");
-      card.className = "min-w-[200px] relative group cursor-pointer transition-transform transform hover:scale-105";
-      card.innerHTML = `
-        <img src="${filme.img}" alt="${filme.titulo}" class="rounded-xl shadow-lg object-cover w-full h-[300px]" />
-        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-          <p class="text-white text-center px-2 font-semibold">${filme.titulo}</p>
-        </div>
-      `;
-
-      card.addEventListener("click", () => {
-        const usuario = localStorage.getItem("usuario");
-        if (usuario) {
-          window.open(filme.link, "_blank");
-        } else {
-          window.location.href = "login.html";
-        }
+    // Controle de carrossel (setas)
+    document.querySelectorAll(".carousel-nav").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.target);
+        const scrollAmount = 400;
+        if (btn.classList.contains("left")) target.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+        else target.scrollBy({ left: scrollAmount, behavior: "smooth" });
       });
-
-      return card;
-    }
-
-    // Listas de filmes com links oficiais do TMDB
-    const filmesPopulares = [
-      { titulo: "Oppenheimer", img: "https://image.tmdb.org/t/p/w500/ptpr0kGAckfQkJeJIt8st5dglvd.jpg", link: "https://www.themoviedb.org/movie/872585-oppenheimer" },
-      { titulo: "Barbie", img: "https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg", link: "https://www.themoviedb.org/movie/346698-barbie" },
-      { titulo: "John Wick 4", img: "https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg", link: "https://www.themoviedb.org/movie/603692-john-wick-chapter-4" },
-      { titulo: "Guardiões da Galáxia 3", img: "https://image.tmdb.org/t/p/w500/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg", link: "https://www.themoviedb.org/movie/447365-guardians-of-the-galaxy-vol-3" },
-      { titulo: "Avatar 2", img: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg", link: "https://www.themoviedb.org/movie/76600-avatar-the-way-of-water" }
-    ];
-
-    const filmesRecomendados = [
-      { titulo: "Interstellar", img: "https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg", link: "https://www.themoviedb.org/movie/157336-interstellar" },
-      { titulo: "Inception", img: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg", link: "https://www.themoviedb.org/movie/27205-inception" },
-      { titulo: "Tenet", img: "https://image.tmdb.org/t/p/w500/k68nPLbIST6NP96JmTxmZijEvCA.jpg", link: "https://www.themoviedb.org/movie/577922-tenet" },
-      { titulo: "Duna", img: "https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg", link: "https://www.themoviedb.org/movie/438631-dune" }
-    ];
-
-    const filmesLancamentos = [
-      { titulo: "The Batman", img: "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg", link: "https://www.themoviedb.org/movie/414906-the-batman" },
-      { titulo: "Homem-Aranha: Sem Volta Para Casa", img: "https://image.tmdb.org/t/p/w500/fVzXp3NwovUlLe7fvoRynCmBPNc.jpg", link: "https://www.themoviedb.org/movie/634649-spider-man-no-way-home" },
-      { titulo: "Venom 2", img: "https://image.tmdb.org/t/p/w500/vIgyYkXkg6NC2whRbYjBD7eb3Er.jpg", link: "https://www.themoviedb.org/movie/580489-venom-let-there-be-carnage" },
-      { titulo: "Matrix Resurrections", img: "https://image.tmdb.org/t/p/w500/8c4a8kE7PizaGQQnditMmI1xbRp.jpg", link: "https://www.themoviedb.org/movie/624860-the-matrix-resurrections" }
-    ];
-
-    // Renderiza as seções
-    const populares = document.getElementById("populares");
-    const recomendados = document.getElementById("recomendados");
-    const lancamentos = document.getElementById("lancamentos");
-
-    filmesPopulares.forEach(f => populares.appendChild(criarCard(f)));
-    filmesRecomendados.forEach(f => recomendados.appendChild(criarCard(f)));
-    filmesLancamentos.forEach(f => lancamentos.appendChild(criarCard(f)));
+    });
   </script>
-
-  <!-- Estilo opcional para esconder scrollbars -->
-  <style>
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
 </body>
 </html>
