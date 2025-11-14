@@ -63,7 +63,7 @@
       lista.innerHTML = `<p class="text-gray-400">🔍 Buscando recomendações...</p>`;
 
       try {
-        const resposta = await fetch("http://localhost:3000/api/recomendacao", {
+        const resposta = await fetch("http://localhost:3000/api/recomendacoes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ preferencias: "Desenhos e animações populares" })
