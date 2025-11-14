@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import router from "../routes/api";
 import { Pool } from "pg";
 import mysql from "mysql2/promise";
+import path from "path";
 
 config();
 
@@ -60,7 +61,7 @@ async function startServer() {
       })
     );
     app.use(express.json());
-    app.use(express.static("public"));
+    app.use(express.static(path.join(__dirname, "../../Frontend/public")));
 
     // 🧭 Rotas principais (TMDB + Banco + IA)
     app.use("/api", router);
@@ -83,8 +84,12 @@ async function startServer() {
 
     // 🏠 Rota raiz
     app.get("/", (req, res) => {
-      res.send("🚀 API de Recomendação de Filmes rodando!");
-    });
+  res.sendFile(path.join(__dirname, "../../Frontend/public/index.html"));
+});
+    // 📄 Rota de recomendações
+    app.get("/recomendacoes", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../Frontend/public/recomendacoes.html"));
+});
 
     // 🚀 Inicializa o servidor
     app.listen(PORT, () => {

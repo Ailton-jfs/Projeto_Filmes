@@ -46,6 +46,6 @@ router.get("/recomendacoes/:id", async (req, res) => {
 // ✅ Importa as rotas modulares
 router.use("/filmes", filmeRouter);           // TMDB + IA
 router.use("/usuarios", usuarioRouter);       // Banco de dados
-router.use("/recomendacao", recomendacaoRouter); // IA personalizada
+router.use("/recomendacoes", recomendacaoRouter); // IA personalizada
 
 export default router;

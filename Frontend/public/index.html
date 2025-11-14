@@ -77,6 +77,18 @@
         </button>
       </div>
     </section>
+    <!-- SEÇÃO DE RECOMENDAÇÕES -->
+    <section>
+      <h3 class="text-2xl font-semibold mb-4">🎯 Recomendações Personalizadas</h3>
+      <div class="flex flex-col sm:flex-row gap-4 mb-6">
+        <input id="inputPreferencias" type="text" placeholder="Ex: gosto de ação e ficção científica"
+          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 placeholder-gray-400 text-white" />
+        <button id="btnRecomendar" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition">
+          Gerar Recomendações
+        </button>
+      </div>
+      <div id="recomendacoesContainer" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+    </section>
 
     <!-- FILMES POPULARES -->
     <section>
@@ -242,6 +254,72 @@
         else target.scrollBy({ left: scrollAmount, behavior: "smooth" });
       });
     });
+    // ===========================================
+// RECOMENDAÇÕES PERSONALIZADAS (GPT + TMDB)
+// ===========================================
+
+const btnRecomendar = document.getElementById("btnRecomendar");
+const inputPreferencias = document.getElementById("inputPreferencias");
+const recomendacoesContainer = document.getElementById("recomendacoesContainer");
+
+btnRecomendar.addEventListener("click", async () => {
+  const preferencias = inputPreferencias.value.trim();
+
+  if (preferencias.length < 3) {
+    alert("Digite suas preferências para gerar recomendações.");
+    return;
+  }
+
+  recomendacoesContainer.innerHTML = `
+    <p class="text-gray-300">🔄 Gerando recomendações...</p>
+  `;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/recomendacoes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ preferencias }),
+    });
+
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      recomendacoesContainer.innerHTML = `
+        <p class="text-gray-300">Nenhuma recomendação encontrada.</p>
+      `;
+      return;
+    }
+
+    recomendacoesContainer.innerHTML = "";
+
+    data.forEach((item) => {
+      const card = document.createElement("div");
+      card.className =
+        "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
+
+      card.innerHTML = `
+        <img src="${item.poster}" class="rounded-xl shadow-lg object-cover w-full h-[280px]">
+        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+          <div class="text-center">
+            <p class="text-white text-sm font-semibold">${item.titulo}</p>
+            <p class="text-gray-300 text-xs mt-1">${item.ano}</p>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        window.open(item.link_tmdb, "_blank");
+      });
+
+      recomendacoesContainer.appendChild(card);
+    });
+  } catch (erro) {
+    recomendacoesContainer.innerHTML = `
+      <p class="text-red-400">❌ Erro ao gerar recomendações.</p>
+    `;
+    console.error("Erro:", erro);
+  }
+});
   </script>
 </body>
 </html>
