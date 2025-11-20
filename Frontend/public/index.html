@@ -21,11 +21,10 @@
     <div class="flex items-center gap-6">
       <h1 class="text-2xl font-bold text-red-600">Cine+</h1>
       <nav class="hidden md:flex gap-6 text-gray-300">
-      <a href="filmes.html" class="hover:text-white transition">Filmes</a>
-      <a href="series.html" class="hover:text-white transition">Séries</a>
-      <a href="desenhos.html" class="hover:text-white transition">Desenhos</a>
+        <a href="filmes.html" class="hover:text-white transition">Filmes</a>
+        <a href="series.html" class="hover:text-white transition">Séries</a>
+        <a href="desenhos.html" class="hover:text-white transition">Desenhos</a>
       </nav>
-
     </div>
 
     <!-- BARRA DE BUSCA -->
@@ -45,7 +44,6 @@
   <section id="bannerDuna" class="relative h-[90vh] flex items-end justify-start bg-cover bg-center cursor-pointer"
     style="background-image: url('https://image.tmdb.org/t/p/original/2lUYbD2C3XSuwqMUbDVDQuz9mqz.jpg');">
     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
-
     <div class="relative z-10 p-6 md:p-10 max-w-xl">
       <h2 class="text-4xl md:text-5xl font-extrabold mb-3">Duna: Parte Dois</h2>
       <p class="text-gray-300 mb-6 max-w-lg">
@@ -77,6 +75,7 @@
         </button>
       </div>
     </section>
+
     <!-- SEÇÃO DE RECOMENDAÇÕES -->
     <section>
       <h3 class="text-2xl font-semibold mb-4">🎯 Recomendações Personalizadas</h3>
@@ -254,72 +253,65 @@
         else target.scrollBy({ left: scrollAmount, behavior: "smooth" });
       });
     });
+
     // ===========================================
-// RECOMENDAÇÕES PERSONALIZADAS (GPT + TMDB)
-// ===========================================
+    // RECOMENDAÇÕES PERSONALIZADAS (GPT + TMDB)
+    // ===========================================
+    const btnRecomendar = document.getElementById("btnRecomendar");
+    const inputPreferencias = document.getElementById("inputPreferencias");
+    const recomendacoesContainer = document.getElementById("recomendacoesContainer");
 
-const btnRecomendar = document.getElementById("btnRecomendar");
-const inputPreferencias = document.getElementById("inputPreferencias");
-const recomendacoesContainer = document.getElementById("recomendacoesContainer");
+    btnRecomendar.addEventListener("click", async () => {
+      const preferencias = inputPreferencias.value.trim();
 
-btnRecomendar.addEventListener("click", async () => {
-  const preferencias = inputPreferencias.value.trim();
+      if (preferencias.length < 3) {
+        alert("Digite suas preferências para gerar recomendações.");
+        return;
+      }
 
-  if (preferencias.length < 3) {
-    alert("Digite suas preferências para gerar recomendações.");
-    return;
-  }
+      recomendacoesContainer.innerHTML = `<p class="text-gray-300">🔄 Gerando recomendações...</p>`;
 
-  recomendacoesContainer.innerHTML = `
-    <p class="text-gray-300">🔄 Gerando recomendações...</p>
-  `;
+      try {
+        const response = await fetch("http://localhost:3000/api/recomendacao", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ preferencias }),
+        });
 
-  try {
-    const response = await fetch("http://localhost:3000/api/recomendacoes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ preferencias }),
+        const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          recomendacoesContainer.innerHTML = `<p class="text-gray-300">Nenhuma recomendação encontrada.</p>`;
+          return;
+        }
+
+        recomendacoesContainer.innerHTML = "";
+
+        data.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
+
+          const posterImg = item.poster || "https://via.placeholder.com/500x750?text=Sem+Imagem";
+
+          card.innerHTML = `
+            <img src="${posterImg}" class="rounded-xl shadow-lg object-cover w-full h-[280px]">
+            <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+              <div class="text-center">
+                <p class="text-white text-sm font-semibold">${item.titulo}</p>
+                <p class="text-gray-300 text-xs mt-1">${item.ano || ""}</p>
+              </div>
+            </div>
+          `;
+
+          card.addEventListener("click", () => window.open(item.link_tmdb, "_blank"));
+
+          recomendacoesContainer.appendChild(card);
+        });
+      } catch (erro) {
+        recomendacoesContainer.innerHTML = `<p class="text-red-400">❌ Erro ao gerar recomendações.</p>`;
+        console.error("Erro:", erro);
+      }
     });
-
-    const data = await response.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      recomendacoesContainer.innerHTML = `
-        <p class="text-gray-300">Nenhuma recomendação encontrada.</p>
-      `;
-      return;
-    }
-
-    recomendacoesContainer.innerHTML = "";
-
-    data.forEach((item) => {
-      const card = document.createElement("div");
-      card.className =
-        "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
-
-      card.innerHTML = `
-        <img src="${item.poster}" class="rounded-xl shadow-lg object-cover w-full h-[280px]">
-        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-          <div class="text-center">
-            <p class="text-white text-sm font-semibold">${item.titulo}</p>
-            <p class="text-gray-300 text-xs mt-1">${item.ano}</p>
-          </div>
-        </div>
-      `;
-
-      card.addEventListener("click", () => {
-        window.open(item.link_tmdb, "_blank");
-      });
-
-      recomendacoesContainer.appendChild(card);
-    });
-  } catch (erro) {
-    recomendacoesContainer.innerHTML = `
-      <p class="text-red-400">❌ Erro ao gerar recomendações.</p>
-    `;
-    console.error("Erro:", erro);
-  }
-});
   </script>
 </body>
 </html>

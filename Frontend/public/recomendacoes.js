@@ -6,13 +6,10 @@ async function carregarRecomendacoes(tipo) {
   container.innerHTML = "<p class='text-gray-400'>🔄 Carregando recomendações...</p>";
 
   try {
-    // envia o tipo (filme, série, desenho)
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        preferencias: [tipo], // envia o tipo para o GPT/TMDB
-      }),
+      body: JSON.stringify({ preferencias: tipo }),
     });
 
     const data = await response.json();
@@ -24,16 +21,14 @@ async function carregarRecomendacoes(tipo) {
     container.innerHTML = "";
 
     data.forEach((item) => {
-      const { title, name, poster_path, id } = item;
-      const titulo = title || name || "Sem título";
-      const imagem = poster_path
-        ? `${TMDB_BASE}${poster_path}`
-        : "https://via.placeholder.com/500x750?text=Sem+Imagem";
-      const link = `https://www.themoviedb.org/${tipo === "filmes" ? "movie" : tipo === "series" ? "tv" : "movie"}/${id}`;
+      const titulo = item.titulo || "Sem título";
+      const imagem = item.poster || "https://via.placeholder.com/500x750?text=Sem+Imagem";
+      const link = item.link_tmdb || "#";
 
       const card = document.createElement("div");
       card.className =
         "bg-gray-900 rounded-xl shadow-md overflow-hidden transform hover:scale-105 transition-all cursor-pointer";
+
       card.innerHTML = `
         <a href="${link}" target="_blank">
           <img src="${imagem}" alt="${titulo}" class="w-full h-80 object-cover">
@@ -42,8 +37,10 @@ async function carregarRecomendacoes(tipo) {
           </div>
         </a>
       `;
+
       container.appendChild(card);
     });
+
   } catch (error) {
     console.error("Erro ao carregar:", error);
     container.innerHTML = `<p class='text-red-500'>❌ ${error.message}</p>`;

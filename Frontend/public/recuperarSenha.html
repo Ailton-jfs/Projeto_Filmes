@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperar Senha - Filmes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white font-sans">
+
+  <!-- Fundo cinematográfico -->
+  <div class="relative h-screen flex items-center justify-center bg-cover bg-center"
+       style="background-image: url('https://image.tmdb.org/t/p/original/9PFonBhy4cQy7Jz20NpMygczOkv.jpg');">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-black"></div>
+
+    <!-- Conteúdo -->
+    <div class="relative z-10 bg-black/80 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+      <h1 class="text-3xl font-bold mb-6 text-center text-red-600">Recuperar Senha</h1>
+
+      <p class="text-gray-300 mb-4 text-center">
+        Digite seu e-mail cadastrado para receber um link de recuperação de senha.
+      </p>
+
+      <input type="email" id="emailRecuperar" placeholder="Seu e-mail"
+        class="w-full p-3 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 mb-4 transition" />
+
+      <button id="btnRecuperar" class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-lg font-semibold transition-all duration-300">
+        Enviar link de recuperação
+      </button>
+
+      <p id="msgRecuperar" class="text-center mt-4 text-sm"></p>
+
+      <div class="mt-6 text-center">
+        <a href="login.html" class="text-red-500 hover:text-red-400 font-semibold">Voltar para login</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:3000/api/usuarios";
+    const btnRecuperar = document.getElementById("btnRecuperar");
+    const emailRecuperar = document.getElementById("emailRecuperar");
+    const msgRecuperar = document.getElementById("msgRecuperar");
+
+    btnRecuperar.addEventListener("click", async () => {
+      const email = emailRecuperar.value.trim();
+
+      if (!email) {
+        msgRecuperar.textContent = "Digite um e-mail válido.";
+        msgRecuperar.className = "text-red-400 mt-3 text-center";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/recuperarSenha`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (response.status === 404) {
+          msgRecuperar.textContent = data.erro || "E-mail não encontrado.";
+          msgRecuperar.className = "text-red-400 mt-3 text-center";
+          return;
+        }
+
+        if (response.ok) {
+          msgRecuperar.textContent = data.mensagem || "Enviamos um link de recuperação para seu e-mail!";
+          msgRecuperar.className = "text-green-400 mt-3 text-center";
+        }
+
+      } catch (err) {
+        msgRecuperar.textContent = "Erro ao enviar solicitação. Tente novamente.";
+        msgRecuperar.className = "text-red-400 mt-3 text-center";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -3,19 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editar Perfil</title>
+  <title>Editar Perfil - Cine+</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
 <body class="bg-black text-white font-sans min-h-screen">
-  <!-- Navbar -->
+
   <header class="fixed w-full top-0 z-20 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-gray-800">
     <button onclick="voltar()" class="text-gray-400 hover:text-white transition">&larr; Voltar</button>
-    <h1 class="text-2xl font-bold text-red-600">Cine+</h1>
+    <h1 class="text-2xl font-bold text-red-600">Editar Perfil</h1>
     <div></div>
   </header>
 
-  <!-- Formulário -->
   <main class="pt-24 flex justify-center items-center">
     <div class="bg-gray-900/70 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-lg w-full mx-4">
       <h2 class="text-3xl font-bold mb-6 text-center">✏️ Editar Perfil</h2>
@@ -41,45 +39,74 @@
   </main>
 
   <script>
+    const API_BASE = "http://localhost:3000/api/usuarios";
+    const form = document.getElementById("formEditar");
+    const msg = document.getElementById("mensagem");
+
     function voltar() {
       window.location.href = "perfil.html";
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      const usuario = JSON.parse(localStorage.getItem("dadosUsuario"));
+      // Pega o usuário logado do localStorage
+      const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
 
-      // Se não existir usuário, redireciona
-      if (usuario || !usuario.nome || !usuario.email) {
-        window.location.href = "editar.html";
+      if (!usuario || !usuario.id) {
+        // Redireciona se não estiver logado
+        window.location.href = "login.html";
         return;
       }
 
       // Preenche os campos com os dados atuais
-      document.getElementById("nome").value = usuario.nome || "";
-      document.getElementById("email").value = usuario.email || "";
+      document.getElementById("nome").value = usuario.nome;
+      document.getElementById("email").value = usuario.email;
 
-      const form = document.getElementById("formEditar");
-      const msg = document.getElementById("mensagem");
-
-      // Atualiza dados no localStorage
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
         const nome = document.getElementById("nome").value.trim();
         const email = document.getElementById("email").value.trim();
         const senha = document.getElementById("senha").value.trim();
 
-        const novosDados = { nome, email, senha };
-        localStorage.setItem("dadosUsuario", JSON.stringify(novosDados));
-        localStorage.setItem("usuario", nome);
+        if (!nome || !email) {
+          msg.textContent = "Preencha nome e e-mail.";
+          msg.className = "text-red-500 text-center mt-4";
+          return;
+        }
 
-        msg.textContent = "✅ Dados atualizados com sucesso!";
-        msg.className = "text-green-400 text-center mt-4";
+        const body = { nome, email };
+        if (senha) body.senha = senha;
 
-        setTimeout(() => {
-          window.location.href = "perfil.html";
-        }, 1000);
+        try {
+          const response = await fetch(`${API_BASE}/${usuario.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            msg.textContent = data.erro || "Erro ao atualizar perfil.";
+            msg.className = "text-red-500 text-center mt-4";
+            return;
+          }
+
+          const updated = await response.json();
+          // Atualiza localStorage com os novos dados
+          localStorage.setItem("usuarioLogado", JSON.stringify(updated));
+
+          msg.textContent = "✅ Perfil atualizado com sucesso!";
+          msg.className = "text-green-400 text-center mt-4";
+
+          setTimeout(() => window.location.href = "perfil.html", 1000);
+
+        } catch (err) {
+          msg.textContent = "Erro de conexão com o servidor.";
+          msg.className = "text-red-500 text-center mt-4";
+        }
       });
     });
   </script>
+
 </body>
 </html>
