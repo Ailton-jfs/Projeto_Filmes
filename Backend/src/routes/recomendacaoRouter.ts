@@ -1,117 +1,131 @@
 import { Router } from "express";
 import axios from "axios";
-import { openai } from "../utils/chatgptClient";
+import { openai } from "../utils/chatgptClient"; // Presumindo que o cliente OpenAI está aqui
 import { config } from "dotenv";
 
 config();
 const router = Router();
 
 // 🔹 Base da API do TMDB
-const TMDB_API_KEY = process.env.TMDB_API_KEY || "SUA_CHAVE_TMDB_AQUI";
+// Se o valor estiver faltando no .env, usará a string 'FALHOU_LEITURA'
+const TMDB_API_KEY = process.env.TMDB_API_KEY || "FALHOU_LEITURA"; 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
 // 🔹 Detecta se é filme, série ou desenho a partir da preferência
 function detectarTipo(preferencias: string): "movie" | "tv" {
-  const texto = preferencias.toLowerCase();
-  if (texto.includes("série") || texto.includes("serie") || texto.includes("tv")) return "tv";
-  if (texto.includes("desenho") || texto.includes("animação") || texto.includes("animacao")) return "tv";
-  return "movie";
+  const texto = preferencias.toLowerCase();
+  if (texto.includes("série") || texto.includes("serie") || texto.includes("tv")) return "tv";
+  if (texto.includes("desenho") || texto.includes("animação") || texto.includes("animacao")) return "tv";
+  return "movie";
 }
 
 router.post("/", async (req, res) => {
-  const { preferencias } = req.body;
+    console.log("--- INÍCIO DA RECOMENDAÇÃO ---");
+    const { preferencias } = req.body;
 
-  if (!preferencias) {
-    return res.status(400).json({ erro: "Informe suas preferências de filmes, séries ou desenhos." });
-  }
+    if (!preferencias) {
+        return res.status(400).json({ erro: "Informe suas preferências de filmes, séries ou desenhos." });
+    }
 
-  const tipo = detectarTipo(preferencias); // 🔍 Decide entre /movie ou /tv
+    if (TMDB_API_KEY === "FALHOU_LEITURA") {
+        console.error("❌ ERRO: TMDB_API_KEY não foi lida do arquivo .env.");
+        return res.status(500).json({ erro: "Chave TMDB API ausente no servidor." });
+    }
 
-  try {
-    // 1️⃣ Prompt otimizado para o GPT gerar apenas JSON puro
-    const prompt = `
-      Você é um curador de cinema e TV.
-      Baseado nas preferências: "${preferencias}",
-      recomende 5 títulos populares que combinem com esse gosto.
+    const tipo = detectarTipo(preferencias);
+    console.log("Tipo detectado:", tipo);
 
-      Responda SOMENTE com um JSON válido no formato:
-      [
-        {"titulo": "nome do título"},
-        {"titulo": "nome do título"},
-        {"titulo": "nome do título"},
-        {"titulo": "nome do título"},
-        {"titulo": "nome do título"}
-      ]
+    try {
+        // 1️⃣ Prompt otimizado para o GPT gerar apenas JSON puro
+        const prompt = `
+          Você é um curador de cinema e TV.
+          Baseado nas preferências: "${preferencias}",
+          recomende 5 títulos populares que combinem com esse gosto.
 
-      Não adicione comentários, texto fora do JSON, nem markdown.
-    `;
+          Responda SOMENTE com um JSON válido no formato:
+          [
+            {"titulo": "nome do título"},
+            {"titulo": "nome do título"},
+            {"titulo": "nome do título"},
+            {"titulo": "nome do título"},
+            {"titulo": "nome do título"}
+          ]
 
-    // 2️⃣ Consulta ao modelo GPT
-    const resposta = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-    });
+          Não adicione comentários, texto fora do JSON, nem markdown.
+        `;
 
-    const texto = resposta.choices?.[0]?.message?.content || "[]";
-    console.log("🧠 Resposta bruta do GPT:", texto);
+        // 2️⃣ Consulta ao modelo GPT
+        console.log("Chamando OpenAI...");
+        const resposta = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+        });
+        console.log("Resposta da OpenAI recebida.");
 
-    // 🧹 Limpeza de possíveis blocos de markdown
-    const textoLimpo = texto
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .trim();
+        const texto = resposta.choices?.[0]?.message?.content || "[]";
+        console.log("🧠 Resposta bruta do GPT:", texto);
 
-    let listaChatGPT: any[] = [];
-    try {
-      listaChatGPT = JSON.parse(textoLimpo);
-    } catch (erro) {
-      console.warn("⚠️ Erro ao converter resposta do GPT em JSON:", textoLimpo);
-      return res.status(500).json({ erro: "Erro ao processar resposta do ChatGPT." });
-    }
+        // 🧹 Limpeza de possíveis blocos de markdown
+        const textoLimpo = texto
+          .replace(/```json/gi, "")
+          .replace(/```/g, "")
+          .trim();
 
-    // 3️⃣ Busca detalhes reais no TMDB
-    const resultadosDetalhados = [];
+        let listaChatGPT: any[] = [];
+        try {
+          listaChatGPT = JSON.parse(textoLimpo);
+        } catch (erro) {
+          console.warn("⚠️ Erro ao converter resposta do GPT em JSON:", textoLimpo);
+          return res.status(500).json({ erro: "Erro ao processar resposta do ChatGPT." });
+        }
 
-    for (const item of listaChatGPT) {
-      try {
-        const busca = await axios.get(`${TMDB_BASE_URL}/search/${tipo}`, {
-          params: {
-            api_key: TMDB_API_KEY,
-            query: item.titulo,
-            language: "pt-BR",
-          },
-        });
+        // 3️⃣ Busca detalhes reais no TMDB
+        const resultadosDetalhados = [];
+        console.log("Iniciando busca no TMDB...");
 
-        const resultado = busca.data.results?.[0];
-        if (resultado) {
-          resultadosDetalhados.push({
-            id: resultado.id,
-            titulo: resultado.title || resultado.name,
-            descricao: resultado.overview,
-            poster: resultado.poster_path
-              ? `https://image.tmdb.org/t/p/w500${resultado.poster_path}`
-              : null,
-            nota: resultado.vote_average,
-            ano:
-              resultado.release_date?.split("-")[0] ||
-              resultado.first_air_date?.split("-")[0] ||
-              "Desconhecido",
-            tipo: tipo === "movie" ? "Filme" : "Série/Desenho",
-            link_tmdb: `https://www.themoviedb.org/${tipo}/${resultado.id}`,
-          });
-        }
-      } catch {
-        console.warn(`❌ Erro ao buscar "${item.titulo}" no TMDb`);
-      }
-    }
+        for (const item of listaChatGPT) {
+          try {
+            console.log(`Buscando: ${item.titulo}`);
+            const busca = await axios.get(`${TMDB_BASE_URL}/search/${tipo}`, {
+              params: {
+                api_key: TMDB_API_KEY,
+                query: item.titulo,
+                language: "pt-BR",
+              },
+            });
 
-    // 4️⃣ Retorna os resultados ao cliente
-    res.json(resultadosDetalhados);
-  } catch (erro) {
-    console.error("❌ Erro ao gerar recomendações:", erro);
-    res.status(500).json({ erro: "Falha ao gerar recomendações." });
-  }
+            const resultado = busca.data.results?.[0];
+            if (resultado) {
+              resultadosDetalhados.push({
+                id: resultado.id,
+                titulo: resultado.title || resultado.name,
+                descricao: resultado.overview,
+                poster: resultado.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${resultado.poster_path}`
+                  : null,
+                nota: resultado.vote_average,
+                ano:
+                  resultado.release_date?.split("-")[0] ||
+                  resultado.first_air_date?.split("-")[0] ||
+                  "Desconhecido",
+                tipo: tipo === "movie" ? "Filme" : "Série/Desenho",
+                link_tmdb: `https://www.themoviedb.org/${tipo}/${resultado.id}`,
+              });
+            }
+          } catch (err) {
+            // Log mais específico para identificar o erro do Axios (TMDB)
+            console.warn(`❌ Erro ao buscar "${item.titulo}" no TMDb:`, (err as any).message);
+          }
+        }
+
+        // 4️⃣ Retorna os resultados ao cliente
+        res.json(resultadosDetalhados);
+    } catch (erro) {
+        // Se cair aqui, o erro é na chamada da OpenAI ou em algo mais grave.
+        console.error("❌ ERRO FATAL AO GERAR RECOMENDAÇÕES:", erro); 
+        res.status(500).json({ erro: "Falha interna ao gerar recomendações." });
+    }
 });
 
 export default router;

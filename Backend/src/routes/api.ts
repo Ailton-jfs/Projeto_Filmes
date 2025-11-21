@@ -43,6 +43,6 @@ router.get("/recomendacoes/:id", async (req, res) => {
 // Rotas modulares
 router.use("/filmes", filmeRouter);
 router.use("/usuarios", usuarioRouter);
-router.use("/recomendacao", recomendacaoRouter);
+router.use("/recomendacoes", recomendacaoRouter);
 
 export default router;
