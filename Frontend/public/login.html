@@ -134,6 +134,7 @@
         if (response.ok) {
           msgRecuperar.textContent = data.mensagem;
           msgRecuperar.className = "text-green-400 mt-3 text-center";
+          setTimeout(() => window.location.href = "index.html", 1000);
         }
 
       } catch (err) {
