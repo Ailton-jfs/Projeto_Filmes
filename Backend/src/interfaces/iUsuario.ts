@@ -6,6 +6,7 @@ interface iUsuario {
   preferencias: string;
   createdAt?: Date;
   updatedAt?: Date;
+  is_admin?: boolean;
 }
 
 export default iUsuario;

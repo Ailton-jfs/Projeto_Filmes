@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin | Cine+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+
+    <header class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
+        <h1 class="text-xl font-bold text-red-500">Painel Admin</h1>
+        <nav class="flex gap-4">
+            <a href="admin-dashboard.html" class="text-white hover:text-red-400 font-semibold">🏠 Dashboard</a>
+            <a href="admin-usuarios.html" class="text-gray-400 hover:text-white">👥 Usuários</a>
+            <button id="logoutAdmin" class="text-red-400 hover:text-red-500">🚪 Sair</button>
+        </nav>
+    </header>
+
+    <main class="p-8">
+        <h2 class="text-3xl font-bold mb-6">Métricas do Sistema</h2>
+        <p class="text-gray-400 mb-8">Bem-vindo(a) de volta, <span id="adminNome" class="font-semibold text-white">Admin</span>!</p>
+
+        <div id="loadingMessage" class="text-lg text-gray-500">Carregando métricas...</div>
+
+        <div id="metricsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-xl border-l-4 border-red-500">
+                <p class="text-sm font-medium text-red-400">Total de Usuários</p>
+                <p id="totalUsuarios" class="text-3xl font-extrabold mt-1">...</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-xl border-l-4 border-red-500">
+                <p class="text-sm font-medium text-red-400">Filmes Cadastrados</p>
+                <p id="totalFilmes" class="text-3xl font-extrabold mt-1">...</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-xl border-l-4 border-red-500">
+                <p class="text-sm font-medium text-red-400">Último Login</p>
+                <p id="ultimoLogin" class="text-3xl font-extrabold mt-1">...</p>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="text-lg text-red-500 mt-6 hidden"></div>
+        
+    </main>
+
+    <script>
+        const API_BASE_URL = "http://localhost:3000/api/admin";
+        const token = localStorage.getItem('adminToken');
+        const adminNomeSpan = document.getElementById('adminNome');
+        const metricsContainer = document.getElementById('metricsContainer');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // 1. 🛡️ Proteção de Rota
+        if (!token) {
+            // Se não houver token, força o redirecionamento para o login
+            window.location.href = 'index.html'; // Voltando para a página inicial que tem o modal
+        } else {
+            // Carrega o nome do admin e inicia o fetch de dados
+            const adminUser = JSON.parse(localStorage.getItem('adminUser'));
+            if (adminUser && adminUser.nome) {
+                adminNomeSpan.textContent = adminUser.nome;
+            }
+
+            // 2. 🚪 Função de Logout
+            document.getElementById('logoutAdmin').addEventListener('click', () => {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = 'index.html'; // Volta para a página inicial (login modal)
+            });
+
+            // 3. 📊 Carregar Métricas do Dashboard
+            async function fetchMetrics() {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/dashboard-metrics`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}` // Envia o token para o backend
+                        }
+                    });
+
+                    loadingMessage.classList.add('hidden');
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Atualiza as métricas na tela
+                        document.getElementById('totalUsuarios').textContent = data.totalUsuarios || 'N/A';
+                        document.getElementById('totalFilmes').textContent = data.totalFilmes || 'N/A';
+                        document.getElementById('ultimoLogin').textContent = data.ultimoLogin ? new Date(data.ultimoLogin).toLocaleDateString('pt-BR') : 'Hoje';
+
+                        metricsContainer.classList.remove('hidden');
+
+                    } else if (response.status === 401 || response.status === 403) {
+                        // Se o token for inválido/expirado, força o logout
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminUser');
+                        alert("Sua sessão expirou. Faça login novamente.");
+                        window.location.href = 'index.html';
+
+                    } else {
+                        const errorData = await response.json();
+                        errorMessage.textContent = `Erro ao carregar dados: ${errorData.erro || response.statusText}`;
+                        errorMessage.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    loadingMessage.classList.add('hidden');
+                    errorMessage.textContent = 'Erro de conexão com o servidor. Verifique se o backend está rodando.';
+                    errorMessage.classList.remove('hidden');
+                    console.error('Erro ao buscar métricas:', error);
+                }
+            }
+
+            fetchMetrics();
+        }
+    </script>
+</body>
+</html>

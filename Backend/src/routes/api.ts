@@ -3,6 +3,7 @@ import axios from "axios";
 import filmeRouter from "./filmesRouter";
 import usuarioRouter from "./usuarioRouter";
 import recomendacaoRouter from "./recomendacaoRouter";
+import adminRouter from "./adminRouter";
 
 const router = Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
@@ -44,5 +45,6 @@ router.get("/recomendacoes/:id", async (req, res) => {
 router.use("/filmes", filmeRouter);
 router.use("/usuarios", usuarioRouter);
 router.use("/recomendacoes", recomendacaoRouter);
+router.use("/admin", adminRouter); // Protege todas as rotas do adminRouter
 
 export default router;

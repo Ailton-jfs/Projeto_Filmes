@@ -1,317 +1,406 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cine+ - Filmes</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .carrossel { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-    .carousel-btn { background: rgba(0,0,0,0.55); }
-    .search-input { transition: all 0.3s ease; width: 180px; }
-    .search-input:focus { width: 260px; }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cine+ - Filmes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .carrossel { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .carousel-btn { background: rgba(0,0,0,0.55); }
+        .search-input { transition: all 0.3s ease; width: 180px; }
+        .search-input:focus { width: 260px; }
+        /* Estilo para o modal de login */
+        .modal-overlay { 
+            background: rgba(0,0,0,0.75); 
+            display: none; 
+        }
+    </style>
 </head>
 <body class="bg-black text-white font-sans">
 
-  <!-- NAVBAR -->
-  <header class="fixed w-full top-0 z-30 bg-black/80 backdrop-blur-md px-6 md:px-8 py-4 flex justify-between items-center border-b border-gray-800">
-    <div class="flex items-center gap-6">
-      <h1 class="text-2xl font-bold text-red-600">Cine+</h1>
-      <nav class="hidden md:flex gap-6 text-gray-300">
-        <a href="filmes.html" class="hover:text-white transition">Filmes</a>
-        <a href="series.html" class="hover:text-white transition">Séries</a>
-        <a href="desenhos.html" class="hover:text-white transition">Desenhos</a>
-      </nav>
-    </div>
+    <header class="fixed w-full top-0 z-30 bg-black/80 backdrop-blur-md px-6 md:px-8 py-4 flex justify-between items-center border-b border-gray-800">
+        <div class="flex items-center gap-6">
+            <h1 class="text-2xl font-bold text-red-600">Cine+</h1>
+            <nav class="hidden md:flex gap-6 text-gray-300">
+                <a href="filmes.html" class="hover:text-white transition">Filmes</a>
+                <a href="series.html" class="hover:text-white transition">Séries</a>
+                <a href="desenhos.html" class="hover:text-white transition">Desenhos</a>
+            </nav>
+        </div>
 
-    <!-- BARRA DE BUSCA -->
-    <div class="flex items-center gap-4">
-      <div id="searchContainer" class="relative hidden md:block">
-        <input id="searchInput" type="text" placeholder="Buscar filmes..."
-          class="search-input bg-gray-800 border border-gray-700 rounded-full px-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 placeholder-gray-400 text-white" />
-        <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </div>
-      <div id="userArea" class="relative"></div>
-    </div>
-  </header>
-
-  <!-- BANNER -->
-  <section id="bannerDuna" class="relative h-[90vh] flex items-end justify-start bg-cover bg-center cursor-pointer"
-    style="background-image: url('https://image.tmdb.org/t/p/original/2lUYbD2C3XSuwqMUbDVDQuz9mqz.jpg');">
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
-    <div class="relative z-10 p-6 md:p-10 max-w-xl">
-      <h2 class="text-4xl md:text-5xl font-extrabold mb-3">Duna: Parte Dois</h2>
-      <p class="text-gray-300 mb-6 max-w-lg">
-        Paul Atreides se une aos Fremen em busca de vingança contra os conspiradores que destruíram sua família.
-      </p>
-      <button id="btnAssistirDuna" class="bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg text-lg font-semibold transition">
-        Assistir Agora
-      </button>
-    </div>
-  </section>
-
-  <!-- Conteúdo -->
-  <main class="mt-[15vh] p-8 space-y-12">
-
-    <!-- RESULTADOS DA BUSCA -->
-    <section id="resultadosBusca" class="hidden">
-      <h3 class="text-2xl font-semibold mb-4">🔍 Resultados da Busca</h3>
-      <div class="relative">
-        <button data-target="buscaContainer" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div id="buscaContainer" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
-        <button data-target="buscaContainer" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- SEÇÃO DE RECOMENDAÇÕES -->
-    <section>
-      <h3 class="text-2xl font-semibold mb-4">🎯 Recomendações Personalizadas</h3>
-      <div class="flex flex-col sm:flex-row gap-4 mb-6">
-        <input id="inputPreferencias" type="text" placeholder="Ex: gosto de ação e ficção científica"
-          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 placeholder-gray-400 text-white" />
-        <button id="btnRecomendar" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition">
-          Gerar Recomendações
-        </button>
-      </div>
-      <div id="recomendacoesContainer" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
-    </section>
-
-    <!-- FILMES POPULARES -->
-    <section>
-      <h3 class="text-2xl font-semibold mb-4">🔥 Filmes Populares</h3>
-      <div class="relative">
-        <button data-target="populares" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div id="populares" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
-        <button data-target="populares" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- LANÇAMENTOS -->
-    <section>
-      <h3 class="text-2xl font-semibold mb-4">🎬 Lançamentos Recentes</h3>
-      <div class="relative">
-        <button data-target="lancamentos" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div id="lancamentos" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
-        <button data-target="lancamentos" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </section>
-
-    <!-- DESCUBRA -->
-    <section>
-      <h3 class="text-2xl font-semibold mb-4">💡 Descubra Novos Filmes</h3>
-      <div class="relative">
-        <button data-target="descubra" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div id="descubra" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
-        <button data-target="descubra" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </section>
-
-  </main>
-
-  <script>
-    const API_KEY = "7a06d5be8eb8fc9cf8aa4de226aefdba";
-    const BASE_URL = "https://api.themoviedb.org/3";
-    const IMG_URL = "https://image.tmdb.org/t/p/w500";
-    const usuario = localStorage.getItem("usuario");
-    const userArea = document.getElementById("userArea");
-    const searchContainer = document.getElementById("searchContainer");
-
-    // Navbar usuário
-    if (usuario) {
-      searchContainer.classList.remove("hidden");
-      userArea.innerHTML = `
-        <div class="relative group">
-          <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition">
-            <span>${usuario}</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="absolute right-0 top-full pt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg hidden group-hover:block">
-            <a href="perfil.html" class="block px-4 py-2 hover:bg-gray-800">👤 Ver Perfil</a>
-            <a href="editar.html" class="block px-4 py-2 hover:bg-gray-800">⚙️ Alterar Dados</a>
-            <button id="logout" class="block w-full text-left px-4 py-2 hover:bg-gray-800 text-red-400">🚪 Sair</button>
-          </div>
-        </div>`;
-      document.getElementById("logout").addEventListener("click", () => {
-        localStorage.removeItem("usuario");
-        window.location.href = "login.html";
-      });
-    } else {
-      userArea.innerHTML = `<a href="login.html" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold">Entrar</a>`;
-    }
-
-    // Banner Duna
-    document.getElementById("btnAssistirDuna").addEventListener("click", () => {
-      if (usuario) window.open("https://www.themoviedb.org/movie/693134-dune-part-two", "_blank");
-      else window.location.href = "login.html";
-    });
-
-    // Criar cards
-    function criarCard(filme) {
-      if (!filme.poster_path) return null;
-      const div = document.createElement("div");
-      div.className = "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
-      div.innerHTML = `
-        <img src="${IMG_URL + filme.poster_path}" class="rounded-xl shadow-lg object-cover w-full h-[280px]" alt="${filme.title}">
-        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-          <div class="text-center"><p class="text-white text-sm font-semibold">${filme.title}</p></div>
-        </div>`;
-      div.addEventListener("click", () => window.open(`https://www.themoviedb.org/movie/${filme.id}`, "_blank"));
-      return div;
-    }
-
-    async function carregarFilmes(endpoint, containerId) {
-      const container = document.getElementById(containerId);
-      try {
-        const res = await fetch(`${BASE_URL}${endpoint}?api_key=${API_KEY}&language=pt-BR&page=1`);
-        const data = await res.json();
-        container.innerHTML = "";
-        data.results.forEach(f => {
-          const card = criarCard(f);
-          if (card) container.appendChild(card);
-        });
-      } catch {
-        container.innerHTML = `<p class="text-gray-400">Erro ao carregar filmes</p>`;
-      }
-    }
-
-    carregarFilmes("/movie/popular", "populares");
-    carregarFilmes("/movie/now_playing", "lancamentos");
-    carregarFilmes("/movie/top_rated", "descubra");
-
-    // Busca
-    const searchInput = document.getElementById("searchInput");
-    searchInput.addEventListener("keydown", async (e) => {
-      if (e.key === "Enter" && searchInput.value.trim() !== "") {
-        const query = searchInput.value.trim();
-        const container = document.getElementById("buscaContainer");
-        const secao = document.getElementById("resultadosBusca");
-        secao.classList.remove("hidden");
-        container.innerHTML = `<p class="text-gray-400">Buscando "${query}"...</p>`;
-        try {
-          const res = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          container.innerHTML = "";
-          if (data.results.length === 0) {
-            container.innerHTML = `<p class="text-gray-400">Nenhum filme encontrado.</p>`;
-            return;
-          }
-          data.results.forEach(f => {
-            const card = criarCard(f);
-            if (card) container.appendChild(card);
-          });
-        } catch {
-          container.innerHTML = `<p class="text-gray-400">Erro na busca.</p>`;
-        }
-      }
-    });
-
-    // Controle de carrossel (setas)
-    document.querySelectorAll(".carousel-nav").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = document.getElementById(btn.dataset.target);
-        const scrollAmount = 400;
-        if (btn.classList.contains("left")) target.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-        else target.scrollBy({ left: scrollAmount, behavior: "smooth" });
-      });
-    });
-
-    // ===========================================
-    // RECOMENDAÇÕES PERSONALIZADAS (GPT + TMDB)
-    // ===========================================
-    const btnRecomendar = document.getElementById("btnRecomendar");
-    const inputPreferencias = document.getElementById("inputPreferencias");
-    const recomendacoesContainer = document.getElementById("recomendacoesContainer");
-
-    btnRecomendar.addEventListener("click", async () => {
-      const preferencias = inputPreferencias.value.trim();
-
-      if (preferencias.length < 3) {
-        alert("Digite suas preferências para gerar recomendações.");
-        return;
-      }
-
-      recomendacoesContainer.innerHTML = `<p class="text-gray-300">🔄 Gerando recomendações...</p>`;
-
-      try {
-        const response = await fetch("http://localhost:3000/api/recomendacao", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ preferencias }),
-        });
-
-        const data = await response.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          recomendacoesContainer.innerHTML = `<p class="text-gray-300">Nenhuma recomendação encontrada.</p>`;
-          return;
-        }
-
-        recomendacoesContainer.innerHTML = "";
-
-        data.forEach((item) => {
-          const card = document.createElement("div");
-          card.className = "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
-
-          const posterImg = item.poster || "https://via.placeholder.com/500x750?text=Sem+Imagem";
-
-          card.innerHTML = `
-            <img src="${posterImg}" class="rounded-xl shadow-lg object-cover w-full h-[280px]">
-            <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-              <div class="text-center">
-                <p class="text-white text-sm font-semibold">${item.titulo}</p>
-                <p class="text-gray-300 text-xs mt-1">${item.ano || ""}</p>
-              </div>
+        <div class="flex items-center gap-4">
+            <div id="searchContainer" class="relative hidden md:block">
+                <input id="searchInput" type="text" placeholder="Buscar filmes..."
+                    class="search-input bg-gray-800 border border-gray-700 rounded-full px-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 placeholder-gray-400 text-white" />
+                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
             </div>
-          `;
+            <div id="userArea" class="relative">
+                </div>
+        </div>
+    </header>
 
-          card.addEventListener("click", () => window.open(item.link_tmdb, "_blank"));
+    <section id="bannerDuna" class="relative h-[90vh] flex items-end justify-start bg-cover bg-center cursor-pointer"
+        style="background-image: url('https://image.tmdb.org/t/p/original/2lUYbD2C3XSuwqMUbDVDQuz9mqz.jpg');">
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
+        <div class="relative z-10 p-6 md:p-10 max-w-xl">
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-3">Duna: Parte Dois</h2>
+            <p class="text-gray-300 mb-6 max-w-lg">
+                Paul Atreides se une aos Fremen em busca de vingança contra os conspiradores que destruíram sua família.
+            </p>
+            <button id="btnAssistirDuna" class="bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg text-lg font-semibold transition">
+                Assistir Agora
+            </button>
+        </div>
+    </section>
 
-          recomendacoesContainer.appendChild(card);
+    <div id="adminLoginModal" class="fixed inset-0 modal-overlay items-center justify-center z-50">
+        <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <h2 class="text-3xl font-bold mb-6 text-center text-red-500">🔒 Login Administrador</h2>
+            <form id="loginAdminForm" class="space-y-4">
+                <div>
+                    <label for="emailAdmin" class="block text-sm font-medium text-gray-300">E-mail</label>
+                    <input type="email" id="emailAdmin" required
+                           class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-white">
+                </div>
+                <div>
+                    <label for="senhaAdmin" class="block text-sm font-medium text-gray-300">Senha</label>
+                    <input type="password" id="senhaAdmin" required
+                           class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-white">
+                </div>
+                <p id="mensagemErroAdmin" class="text-sm text-red-400 hidden"></p>
+                <button type="submit"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                    Acessar Painel
+                </button>
+                <button type="button" id="fecharAdminLogin" class="mt-2 w-full text-gray-400 hover:text-white">Fechar</button>
+            </form>
+        </div>
+    </div>
+    <main class="mt-[15vh] p-8 space-y-12">
+        <section id="resultadosBusca" class="hidden">
+            <h3 class="text-2xl font-semibold mb-4">🔍 Resultados da Busca</h3>
+            <div class="relative">
+                <button data-target="buscaContainer" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div id="buscaContainer" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+                <button data-target="buscaContainer" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <h3 class="text-2xl font-semibold mb-4">🎯 Recomendações Personalizadas</h3>
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <input id="inputPreferencias" type="text" placeholder="Ex: gosto de ação e ficção científica"
+                    class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 placeholder-gray-400 text-white" />
+                <button id="btnRecomendar" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold transition">
+                    Gerar Recomendações
+                </button>
+            </div>
+            <div id="recomendacoesContainer" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+        </section>
+
+        <section>
+            <h3 class="text-2xl font-semibold mb-4">🔥 Filmes Populares</h3>
+            <div class="relative">
+                <button data-target="populares" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div id="populares" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+                <button data-target="populares" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <h3 class="text-2xl font-semibold mb-4">🎬 Lançamentos Recentes</h3>
+            <div class="relative">
+                <button data-target="lancamentos" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div id="lancamentos" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+                <button data-target="lancamentos" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <h3 class="text-2xl font-semibold mb-4">💡 Descubra Novos Filmes</h3>
+            <div class="relative">
+                <button data-target="descubra" class="carousel-nav left carousel-btn absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <div id="descubra" class="carrossel flex gap-4 overflow-x-auto scrollbar-hide pb-3 pl-2 pr-2"></div>
+                <button data-target="descubra" class="carousel-nav right carousel-btn absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const API_KEY = "7a06d5be8eb8fc9cf8aa4de226aefdba";
+        const BASE_URL = "https://api.themoviedb.org/3";
+        const IMG_URL = "https://image.tmdb.org/t/p/w500";
+        const usuario = localStorage.getItem("usuario");
+        const adminToken = localStorage.getItem("adminToken"); // NOVO: verifica token admin
+        const userArea = document.getElementById("userArea");
+        const searchContainer = document.getElementById("searchContainer");
+        
+        // Elementos do Modal Admin
+        const adminLoginModal = document.getElementById('adminLoginModal');
+        const loginAdminForm = document.getElementById('loginAdminForm');
+        const fecharAdminLogin = document.getElementById('fecharAdminLogin');
+        const mensagemErroAdmin = document.getElementById('mensagemErroAdmin');
+        const API_URL_ADMIN = "http://localhost:3000/api/admin/login";
+
+        // 🚨 1. Redirecionamento de Admin logado
+        if (adminToken) {
+            // Se Admin está logado, redireciona diretamente para o Dashboard
+            window.location.href = 'admin-dashboard.html'; 
+        } 
+        
+        // 2. Navbar e Lógica de Usuário
+        else if (usuario) {
+            // Se Usuário comum está logado (mantido)
+            searchContainer.classList.remove("hidden");
+            userArea.innerHTML = `
+                <div class="relative group">
+                    <button class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition">
+                        <span>${usuario}</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="absolute right-0 top-full pt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg hidden group-hover:block">
+                        <a href="perfil.html" class="block px-4 py-2 hover:bg-gray-800">👤 Ver Perfil</a>
+                        <a href="editar.html" class="block px-4 py-2 hover:bg-gray-800">⚙️ Alterar Dados</a>
+                        <button id="logout" class="block w-full text-left px-4 py-2 hover:bg-gray-800 text-red-400">🚪 Sair</button>
+                    </div>
+                </div>`;
+            document.getElementById("logout").addEventListener("click", () => {
+                localStorage.removeItem("usuario");
+                window.location.href = "login.html";
+            });
+        } 
+        
+        // 3. Área sem Login (Mostra Entrar e Admin)
+        else {
+            userArea.innerHTML = `
+                <a href="login.html" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-lg font-semibold">Entrar</a>
+                <button id="abrirAdminLogin" class="text-gray-300 hover:text-white transition ml-3">Área Admin</button>
+            `;
+            // Adiciona listener para abrir o modal de login do admin
+            document.getElementById("abrirAdminLogin").addEventListener("click", () => {
+                adminLoginModal.style.display = 'flex';
+            });
+        }
+
+        // 4. Lógica do Modal Admin
+        fecharAdminLogin.addEventListener("click", () => {
+            adminLoginModal.style.display = 'none';
+            mensagemErroAdmin.classList.add('hidden');
         });
-      } catch (erro) {
-        recomendacoesContainer.innerHTML = `<p class="text-red-400">❌ Erro ao gerar recomendações.</p>`;
-        console.error("Erro:", erro);
-      }
-    });
-  </script>
+
+        loginAdminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            mensagemErroAdmin.classList.add('hidden');
+            
+            const email = document.getElementById('emailAdmin').value;
+            const senha = document.getElementById('senhaAdmin').value;
+
+            try {
+                const response = await fetch(API_URL_ADMIN, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // SUCESSO: Armazena token e redireciona
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminUser', JSON.stringify(data.admin));
+                    window.location.href = 'admin-dashboard.html'; 
+                } else {
+                    mensagemErroAdmin.textContent = data.erro || 'Erro desconhecido. Verifique as credenciais.';
+                    mensagemErroAdmin.classList.remove('hidden');
+                }
+            } catch (error) {
+                mensagemErroAdmin.textContent = 'Erro de conexão com o servidor.';
+                mensagemErroAdmin.classList.remove('hidden');
+                console.error('Erro de rede/admin:', error);
+            }
+        });
+
+
+        // Banner Duna
+        document.getElementById("btnAssistirDuna").addEventListener("click", () => {
+            // Agora verifica se o usuário COMUM ou ADMIN está logado
+            if (usuario || adminToken) window.open("https://www.themoviedb.org/movie/693134-dune-part-two", "_blank");
+            else window.location.href = "login.html";
+        });
+
+        // Criar cards (Mantido)
+        function criarCard(filme) {
+            if (!filme.poster_path) return null;
+            const div = document.createElement("div");
+            div.className = "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
+            div.innerHTML = `
+                <img src="${IMG_URL + filme.poster_path}" class="rounded-xl shadow-lg object-cover w-full h-[280px]" alt="${filme.title}">
+                <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <div class="text-center"><p class="text-white text-sm font-semibold">${filme.title}</p></div>
+                </div>`;
+            div.addEventListener("click", () => {
+                 // Agora verifica se o usuário COMUM ou ADMIN está logado
+                if (usuario || adminToken) window.open(`https://www.themoviedb.org/movie/${filme.id}`, "_blank");
+                else window.location.href = "login.html";
+            });
+            return div;
+        }
+
+        // Funções carregarFilmes (Mantido)
+        async function carregarFilmes(endpoint, containerId) {
+            const container = document.getElementById(containerId);
+            try {
+                const res = await fetch(`${BASE_URL}${endpoint}?api_key=${API_KEY}&language=pt-BR&page=1`);
+                const data = await res.json();
+                container.innerHTML = "";
+                data.results.forEach(f => {
+                    const card = criarCard(f);
+                    if (card) container.appendChild(card);
+                });
+            } catch {
+                container.innerHTML = `<p class="text-gray-400">Erro ao carregar filmes</p>`;
+            }
+        }
+
+        carregarFilmes("/movie/popular", "populares");
+        carregarFilmes("/movie/now_playing", "lancamentos");
+        carregarFilmes("/movie/top_rated", "descubra");
+
+        // Busca
+        const searchInput = document.getElementById("searchInput");
+        searchInput.addEventListener("keydown", async (e) => {
+            if (e.key === "Enter" && searchInput.value.trim() !== "") {
+                const query = searchInput.value.trim();
+                const container = document.getElementById("buscaContainer");
+                const secao = document.getElementById("resultadosBusca");
+                secao.classList.remove("hidden");
+                container.innerHTML = `<p class="text-gray-400">Buscando "${query}"...</p>`;
+                try {
+                    const res = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+                    const data = await res.json();
+                    container.innerHTML = "";
+                    if (data.results.length === 0) {
+                        container.innerHTML = `<p class="text-gray-400">Nenhum filme encontrado.</p>`;
+                        return;
+                    }
+                    data.results.forEach(f => {
+                        const card = criarCard(f);
+                        if (card) container.appendChild(card);
+                    });
+                } catch {
+                    container.innerHTML = `<p class="text-gray-400">Erro na busca.</p>`;
+                }
+            }
+        });
+
+        // Controle de carrossel (setas)
+        document.querySelectorAll(".carousel-nav").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const target = document.getElementById(btn.dataset.target);
+                const scrollAmount = 400;
+                if (btn.classList.contains("left")) target.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+                else target.scrollBy({ left: scrollAmount, behavior: "smooth" });
+            });
+        });
+
+        // ===========================================
+        // RECOMENDAÇÕES PERSONALIZADAS (MANTIDO)
+        // ===========================================
+        const btnRecomendar = document.getElementById("btnRecomendar");
+        const inputPreferencias = document.getElementById("inputPreferencias");
+        const recomendacoesContainer = document.getElementById("recomendacoesContainer");
+
+        btnRecomendar.addEventListener("click", async () => {
+            const preferencias = inputPreferencias.value.trim();
+
+            if (preferencias.length < 3) {
+                alert("Digite suas preferências para gerar recomendações.");
+                return;
+            }
+
+            recomendacoesContainer.innerHTML = `<p class="text-gray-300">🔄 Gerando recomendações...</p>`;
+
+            try {
+                const response = await fetch("http://localhost:3000/api/recomendacoes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ preferencias }),
+                });
+
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    recomendacoesContainer.innerHTML = `<p class="text-gray-300">Nenhuma recomendação encontrada.</p>`;
+                    return;
+                }
+
+                recomendacoesContainer.innerHTML = "";
+
+                data.forEach((item) => {
+                    const card = document.createElement("div");
+                    card.className = "min-w-[180px] sm:min-w-[200px] md:min-w-[220px] relative group cursor-pointer";
+
+                    const posterImg = item.poster || "https://via.placeholder.com/500x750?text=Sem+Imagem";
+
+                    card.innerHTML = `
+                        <img src="${posterImg}" class="rounded-xl shadow-lg object-cover w-full h-[280px]">
+                        <div class="absolute inset-0 bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <div class="text-center">
+                                <p class="text-white text-sm font-semibold">${item.titulo}</p>
+                                <p class="text-gray-300 text-xs mt-1">${item.ano || ""}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    card.addEventListener("click", () => window.open(item.link_tmdb, "_blank"));
+
+                    recomendacoesContainer.appendChild(card);
+                });
+            } catch (erro) {
+                recomendacoesContainer.innerHTML = `<p class="text-red-400">❌ Erro ao gerar recomendações.</p>`;
+                console.error("Erro:", erro);
+            }
+        });
+    </script>
 </body>
 </html>
