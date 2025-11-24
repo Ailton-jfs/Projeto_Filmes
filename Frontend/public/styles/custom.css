@@ -1,0 +1,13 @@
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.carrossel { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+.carousel-btn { background: rgba(0,0,0,0.55); }
+.search-input { transition: all 0.3s ease; width: 180px; }
+.search-input:focus { width: 260px; }
+
+/* Estilo para o modal de login */
+.modal-overlay { 
+    background: rgba(0,0,0,0.75); 
+    display: none; 
+}
+.modal-overlay { background: rgba(0, 0, 0, 0.75); display: none; }
