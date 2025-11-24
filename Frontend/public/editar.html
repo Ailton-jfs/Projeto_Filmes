@@ -1,114 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editar Perfil - Cine+</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editar Perfil - Cine+</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-black text-white font-sans min-h-screen">
+    <!-- Fundo cinematográfico -->
+    <div class="absolute inset-0 bg-[url('https://image.tmdb.org/t/p/original/wRxLAw4l17LqiFcPLkobriPTZAw.jpg')] bg-cover bg-center opacity-40"></div>
 
-  <header class="fixed w-full top-0 z-20 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-gray-800">
-    <button onclick="voltar()" class="text-gray-400 hover:text-white transition">&larr; Voltar</button>
-    <h1 class="text-2xl font-bold text-red-600">Editar Perfil</h1>
-    <div></div>
-  </header>
 
-  <main class="pt-24 flex justify-center items-center">
-    <div class="bg-gray-900/70 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-lg w-full mx-4">
-      <h2 class="text-3xl font-bold mb-6 text-center">✏️ Editar Perfil</h2>
+  <div class="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black"></div>
+  <!-- Navbar -->
+  <header class="fixed w-full top-0 z-20 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-gray-800">
+    <button onclick="voltar()" class="text-gray-400 hover:text-white transition flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      Voltar
+    </button>
+    <a href="index.html" class="text-2xl font-bold text-red-600">Cine+</a>
+    <div></div>
+  </header>
 
-      <form id="formEditar" class="space-y-4">
-        <input type="text" id="nome" placeholder="Nome" required
-          class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition" />
-        
-        <input type="email" id="email" placeholder="E-mail" required
-          class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition" />
-        
-        <input type="password" id="senha" placeholder="Nova senha (opcional)"
-          class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition" />
+  <!-- Conteúdo -->
+  <main class="pt-32 flex justify-center items-center px-4">
+    <div class="bg-gray-900/70 backdrop-blur-md p-10 rounded-2xl shadow-2xl max-w-lg w-full">
 
-        <button type="submit"
-          class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-lg font-semibold transition">
-          Salvar Alterações
-        </button>
-      </form>
+      <h2 class="text-3xl font-bold mb-6 text-center">✏️ Editar Perfil</h2>
 
-      <p id="mensagem" class="mt-4 text-center text-sm"></p>
-    </div>
-  </main>
+      <form id="formEditar" class="space-y-4">
 
-  <script>
-    const API_BASE = "http://localhost:3000/api/usuarios";
-    const form = document.getElementById("formEditar");
-    const msg = document.getElementById("mensagem");
+        <input type="text" id="nome" placeholder="Nome" required
+          class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition" />
 
-    function voltar() {
-      window.location.href = "perfil.html";
-    }
+        <input type="email" id="email" placeholder="E-mail" required
+          class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition" />
 
-    document.addEventListener("DOMContentLoaded", () => {
-      // 🔑 CORREÇÃO: Pegando o usuário logado usando a chave correta: "dadosUsuario"
-      const usuario = JSON.parse(localStorage.getItem("dadosUsuario"));
+        <!-- SENHA + REQUISITOS -->
+        <div>
+          <input 
+            type="password" 
+            id="senha" 
+            placeholder="Nova senha (opcional)"
+            class="w-full p-3 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+            minlength="8"
+            pattern="(?=.*[A-Z])(?=.*[!@#$%^&*()_+={}\[\]|:;,.<>?/~`]).{8,}"
+          />
 
-      if (!usuario || !usuario.id) {
-        // Redireciona se não estiver logado
-        window.location.href = "login.html";
-        return;
-      }
+          <!-- Requisitos alinhados à esquerda -->
+          <div class="text-xs text-gray-400 mt-2 text-left">
+            Se quiser alterar sua senha, siga os requisitos:
+            <ul class="list-disc ml-4 mt-1 space-y-0.5">
+              <li id="req_min_chars">Mínimo 8 caracteres</li>
+              <li id="req_upper_case">Pelo menos 1 letra maiúscula</li>
+              <li id="req_special_char">Pelo menos 1 caractere especial</li>
+            </ul>
+          </div>
+        </div>
 
-      // Preenche os campos com os dados atuais
-      document.getElementById("nome").value = usuario.nome;
-      document.getElementById("email").value = usuario.email;
+        <button type="submit"
+          class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-lg font-semibold transition">
+          Salvar Alterações
+        </button>
+      </form>
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+      <p id="mensagem" class="mt-4 text-center text-sm"></p>
+    </div>
+  </main>
 
-        const nome = document.getElementById("nome").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const senha = document.getElementById("senha").value.trim();
-
-        if (!nome || !email) {
-          msg.textContent = "Preencha nome e e-mail.";
-          msg.className = "text-red-500 text-center mt-4";
-          return;
-        }
-
-        const body = { nome, email };
-        if (senha) body.senha = senha;
-
-        try {
-          // Endpoint PATCH correto, usando o ID do objeto de usuário
-          const response = await fetch(`${API_BASE}/${usuario.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-          });
-
-          if (!response.ok) {
-            const data = await response.json();
-            msg.textContent = data.erro || "Erro ao atualizar perfil.";
-            msg.className = "text-red-500 text-center mt-4";
-            return;
-          }
-
-          const updated = await response.json();
-          // 🔑 CORREÇÃO: Atualiza o localStorage com os novos dados nas chaves corretas
-          localStorage.setItem("dadosUsuario", JSON.stringify(updated));
-          localStorage.setItem("usuario", updated.nome); // Atualiza o nome para o menu da navbar
-
-          msg.textContent = "✅ Perfil atualizado com sucesso!";
-          msg.className = "text-green-400 text-center mt-4";
-
-          setTimeout(() => window.location.href = "perfil.html", 1000);
-
-        } catch (err) {
-          msg.textContent = "Erro de conexão com o servidor.";
-          msg.className = "text-red-500 text-center mt-4";
-        }
-      });
-    });
-  </script>
-
+  <script src="../public/js/editar.js"></script>
 </body>
 </html>

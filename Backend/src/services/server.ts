@@ -1,5 +1,3 @@
-// server.ts
-
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -61,7 +59,7 @@ async function startServer() {
       cors({
         origin: "*", // 🔥 libera tudo (para dev)
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], 
-        allowedHeaders: ["Content-Type", "Authorization"], // 🎯 CORREÇÃO: Adicionado "Authorization"
+        allowedHeaders: ["Content-Type", "Authorization"], 
       })
     );
 
