@@ -64,10 +64,7 @@ async function startServer() {
     );
 
     app.use(express.json());
-
-    // -----------------------------------------------------
-    // 🧪 Teste rápido DB
-    // -----------------------------------------------------
+    
     app.get("/api/test-db", async (req, res) => {
       try {
         if (dbType === "mysql") {
@@ -82,14 +79,8 @@ async function startServer() {
       }
     });
 
-    // -----------------------------------------------------
-    // 🧭 Rotas API
-    // -----------------------------------------------------
     app.use("/api", router);
 
-    // -----------------------------------------------------
-    // 🚀 Servir Frontend
-    // -----------------------------------------------------
     const publicPath = path.join(__dirname, "../../Frontend/public");
     app.use(express.static(publicPath));
 
@@ -101,9 +92,6 @@ async function startServer() {
       res.sendFile(path.join(publicPath, "recomendacoes.html"));
     });
     
-    // -----------------------------------------------------
-    // ▶ Iniciar servidor
-    // -----------------------------------------------------
     app.listen(PORT, () => {
       console.log(`💻 Servidor rodando em: http://localhost:${PORT}`);
     });

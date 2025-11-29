@@ -268,5 +268,4 @@ router.get("/api/filmes/recomendar", async (req, res) => {
   });
 });
 
-// ------------------------------------------------------------------
 export default router;

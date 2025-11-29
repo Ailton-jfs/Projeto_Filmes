@@ -9,10 +9,6 @@ const router = Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY!;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-// Rota teste
-router.get("/", (req, res) => {
-  res.json({ message: "🎬 API de Filmes Online!" });
-});
 
 // Filmes populares
 router.get("/populares", async (req, res) => {
@@ -45,6 +41,6 @@ router.get("/recomendacoes/:id", async (req, res) => {
 router.use("/filmes", filmeRouter);
 router.use("/usuarios", usuarioRouter);
 router.use("/recomendacoes", recomendacaoRouter);
-router.use("/admin", adminRouter); // Protege todas as rotas do adminRouter
+router.use("/admin", adminRouter); 
 
 export default router;

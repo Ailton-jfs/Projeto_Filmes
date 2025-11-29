@@ -15,8 +15,6 @@ adminRouter.use(authAdmin);
 // 📊 Dashboard
 adminRouter.get("/dashboard-metrics", adminController.getDashboardMetrics);
 
-// 👥 Gerenciamento de Usuários (CRUD COMPLETO)
-
 // ➕ POST /usuarios: CRIA UM NOVO USUÁRIO
 adminRouter.post("/usuarios", adminController.createUser); 
 

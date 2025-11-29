@@ -60,7 +60,7 @@ const newUsuario = async (req: Request, res: Response) => {
       return rest;
     })(newU);
     
-    return res.status(201).json(usuarioRetorno); // 201 Created é mais adequado para criação
+    return res.status(201).json(usuarioRetorno); 
   } catch (error) {
     console.error("Erro ao cadastrar usuário:", error);
     return res.status(500).json({ erro: 'Ocorreu um erro interno no servidor durante o cadastro.' });

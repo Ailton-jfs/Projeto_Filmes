@@ -28,8 +28,8 @@ const authAdmin = (req: Request, res: Response, next: NextFunction) => {
         return res.status(401).json({ erro: 'Acesso negado. Formato de token inválido.' });
     }
 
-    const token = tokenParts[1] as string; // O token agora está garantidamente definido (tokenParts[1])
-
+    // O token agora está garantidamente definido (tokenParts[1])
+    const token = tokenParts[1] as string; 
     try {
         // 4. O TypeScript está agora satisfeito, pois 'token' é uma string definida.
         const decoded = jwt.verify(token, JWT_SECRET); 

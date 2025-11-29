@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "chave_secreta";
-const SALT_ROUNDS = 10; // Fator de segurança para o hash da senha
+const SALT_ROUNDS = 10; 
 
 interface AdminAuthResult {
     token: string;
@@ -160,7 +160,7 @@ async function deleteUser(id: number) {
     if (!result) {
         throw new Error("Usuário não encontrado para exclusão.");
     }
-    return true; // Sucesso
+    return true; 
 }
 
 

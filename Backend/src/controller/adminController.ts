@@ -3,10 +3,6 @@
 import { Request, Response } from 'express';
 import AdminService from '../services/AdminService';
 
-// =========================================================================
-// FUNÇÕES DE AUTENTICAÇÃO E MÉTRICAS
-// =========================================================================
-
 // 🔑 Função para Login de Administrador
 async function login(req: Request, res: Response): Promise<Response> {
     const { email, senha } = req.body;

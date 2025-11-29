@@ -1,6 +1,6 @@
 import { Router } from "express";
 import axios from "axios";
-import { openai } from "../utils/chatgptClient"; // Presumindo que o cliente OpenAI está aqui
+import { openai } from "../utils/chatgptClient";
 import { config } from "dotenv";
 
 config();
