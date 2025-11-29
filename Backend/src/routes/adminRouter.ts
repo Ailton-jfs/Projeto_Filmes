@@ -12,10 +12,6 @@ adminRouter.post("/login", adminController.login);
 // 🛡️ Aplica o middleware de proteção (authAdmin) a TODAS as rotas subsequentes.
 adminRouter.use(authAdmin); 
 
-// =========================================================================
-// ROTAS DE ADMINISTRAÇÃO PROTEGIDAS
-// =========================================================================
-
 // 📊 Dashboard
 adminRouter.get("/dashboard-metrics", adminController.getDashboardMetrics);
 

@@ -35,7 +35,6 @@ const newUsuario = async (body: iUsuario) => {
 // 🔹 Busca usuário por e-mail
 const getByEmail = async (email: string) => {
     const conn = await getConnection();
-    // ⚠️ ATENÇÃO: Adicione 'is_admin' aqui para que o login do admin funcione!
     const [rows]: any = await conn.execute("SELECT * FROM usuario WHERE email = ?", [email]); 
     return rows[0];
 };
@@ -86,11 +85,6 @@ const removeUsuario = async (id: number) => {
     return result.affectedRows > 0;
 };
 
-
-// =========================================================================
-// 🚀 NOVAS FUNÇÕES PARA ADMINISTRAÇÃO
-// =========================================================================
-
 // 📊 Conta o número total de usuários para o Dashboard
 const countAll = async (): Promise<number> => {
     const conn = await getConnection();
@@ -107,10 +101,6 @@ const getAllBasic = async () => {
     return rows;
 };
 
-// =========================================================================
-// 🔄 EXPORTAÇÃO
-// =========================================================================
-
 export default {
     getAll,
     getById,
@@ -118,7 +108,6 @@ export default {
     getByEmail,
     editPartial,
     removeUsuario,
-    // ➡️ Novas exportações
     countAll,
     getAllBasic,
 };

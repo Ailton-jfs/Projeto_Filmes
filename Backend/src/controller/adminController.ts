@@ -184,9 +184,9 @@ async function deleteUser(req: Request, res: Response): Promise<Response> {
 export default {
     login,
     getDashboardMetrics,
-    createUser,    // ➡️ NOVO: Exportando a função de criação
-    listUsers,
+    createUser,    
     getUserById,
     updateUser,
     deleteUser,
+    listUsers
 };
